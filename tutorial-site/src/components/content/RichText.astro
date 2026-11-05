@@ -1,0 +1,38 @@
+---
+/**
+ * RICHTEXT — the single place a content string becomes HTML.
+ *
+ * Why this exists: inline markdown was previously converted ad-hoc at a dozen
+ * call sites, and every site that was missed shipped literal backticks to the
+ * page. One component means one implementation, one escaping path, and no way
+ * for a new call site to silently skip the conversion.
+ *
+ * Supported inline syntax (deliberately minimal):
+ *   `code`      → <code>
+ *   **bold**    → <strong>
+ *   *em*        → <em>
+ *   [text](url) → <a>   (http/https and site-relative only)
+ *
+ * Everything else is literal text. There is no block-level parsing here — that
+ * is what the `blocks` array in the content schema exists for.
+ *
+ * Class handling: the caller's classes are merged with the tag default, and
+ * `class:list` arrays from the parent are passed through untouched, so this can
+ * replace an element one-for-one without changing its styling.
+ */
+import { inlineHtml } from '@/lib/blocks';
+
+interface Props {
+  text: string;
+  /** Wrapper tag. Defaults to a span so it is legal inside any parent. */
+  as?: string;
+  class?: string | string[] | Record<string, boolean>;
+  [key: string]: unknown;
+}
+
+const { text, as = 'span', class: cls, ...rest } = Astro.props;
+
+const Tag = as as any;
+---
+
+<Tag {...rest} class={cls} set:html={inlineHtml(text)} />

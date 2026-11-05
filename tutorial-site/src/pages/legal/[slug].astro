@@ -1,0 +1,76 @@
+---
+/**
+ * LEGAL — /legal/{slug}/ for about, privacy, terms.
+ *
+ * Lives under /legal/ rather than at the root because Astro has no route
+ * groups: a root-level [slug].astro would collide with [topic]/index.astro
+ * for every single-segment path.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import { getAllLegal, type Legal } from '@/lib/content';
+import { breadcrumbNode } from '@/lib/jsonld';
+import RichText from '@/components/content/RichText.astro';
+
+export async function getStaticPaths() {
+  const all = await getAllLegal();
+  return all.map((entry) => ({ params: { slug: entry.id }, props: { doc: entry } }));
+}
+
+interface Props {
+  doc: Legal;
+}
+
+const { doc } = Astro.props;
+const d = doc.data;
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+const path = routes.legal(doc.id);
+
+const crumbs = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: d.title, path },
+];
+
+const jsonLd = [breadcrumbNode({ origin }, crumbs)];
+
+const fmt = (dt: Date) =>
+  dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+---
+
+<BaseLayout
+  title={d.seo.title}
+  description={d.seo.description}
+  canonical={d.seo.canonical}
+  noindex={d.seo.noindex}
+  titleSuffix={UI.siteName}
+  jsonLd={jsonLd}
+  ogType="website"
+  modifiedTime={d.updated}
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <article class="max-w-2xl prose-docs">
+    <h1 class="text-3xl font-bold tracking-tight text-white">{d.title}</h1>
+    <p class="mt-3 text-xs text-ink-600">
+      Last updated <time datetime={d.updated.toISOString().slice(0, 10)}>{fmt(d.updated)}</time>
+    </p>
+
+    {
+      d.blocks.map((b) => {
+        if (b.type === 'p') return <RichText as="p" class="" text={b.text} />;
+        if (b.type === 'h2')
+          return <RichText as="h2" class="mt-10 text-xl font-semibold text-ink-100" text={b.text} />;
+        return (
+          <ul>
+            {b.items.map((i) => (
+              <li><RichText text={i} /></li>
+            ))}
+          </ul>
+        );
+      })
+    }
+  </article>
+</BaseLayout>

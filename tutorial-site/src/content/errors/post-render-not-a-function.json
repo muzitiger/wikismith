@@ -1,0 +1,160 @@
+{
+  "slug": "post-render-not-a-function",
+  "topic": "astro",
+  "seo": {
+    "title": "Astro 5: post.render is not a function — The Fix",
+    "description": "Astro 5 removed the render method on collection entries. Import render() from astro:content instead. The exact before-and-after, plus what else broke."
+  },
+  "h1": "post.render is not a function: Migrating the Astro 5 Render API",
+  "message": "entry.render is not a function",
+  "code": "TypeError: entry.render is not a function",
+  "answer": "Astro 5 removed the render() method from collection entries. Import render from astro:content and call it with the entry: const { Content } = await render(entry).",
+  "symptom": "After upgrading to Astro 5, every page that renders a collection entry fails with TypeError: entry.render is not a function at build time. The rest of the site builds. Editor type hints may have already flagged it as Property 'render' does not exist on type 'CollectionEntry'.",
+  "category": "build",
+  "affected": {
+    "versions": ">=5.0.0",
+    "platforms": [
+      "all"
+    ]
+  },
+  "causes": [
+    {
+      "title": "The entry method was replaced by a module function",
+      "explain": "In Astro 4 and earlier, `await entry.render()` returned the compiled body. Astro 5 moved rendering to a standalone export so that entries can come from remote loaders where an instance method makes no sense. The old call signature is gone, not deprecated.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Find every call site",
+          "body": [
+            {
+              "type": "p",
+              "text": "Search the whole project. This appears in dynamic route files and in any component that receives an entry as a prop."
+            },
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "grep -rn '\\.render()' src --include='*.astro' --include='*.ts'"
+            }
+          ],
+          "expected": "You have the full list of files using the old API.",
+          "minutes": 2
+        },
+        {
+          "n": 2,
+          "title": "Rewrite each one to use the imported function",
+          "body": [
+            {
+              "type": "p",
+              "text": "Replace the method call with the imported function. The destructured return shape is the same, so the JSX below it does not change."
+            },
+            {
+              "type": "code",
+              "lang": "astro",
+              "code": "---\n// Before (Astro 4)\nconst { Content, headings } = await post.render();\n\n// After (Astro 5)\nimport { render } from 'astro:content';\nconst { Content, headings } = await render(post);\n---"
+            }
+          ],
+          "expected": "No file calls `.render()` on an entry any more.",
+          "minutes": 5
+        },
+        {
+          "n": 3,
+          "title": "Rebuild and confirm",
+          "body": [
+            {
+              "type": "p",
+              "text": "Rebuild and confirm the error is gone. If a new error appears about `Content` being undefined, a call site was missed."
+            }
+          ],
+          "expected": "Build completes and entry pages render their Markdown bodies.",
+          "verify": {
+            "cmd": "npx astro build",
+            "expect": "Complete!"
+          },
+          "minutes": 3
+        }
+      ]
+    },
+    {
+      "title": "The code still targets the Astro 4 content collection API elsewhere",
+      "explain": "The render method is the first thing that breaks, but the same upgrade also changed the config file location and the way collections are declared. Fixing only the render call leaves the project half-migrated, and the remaining breakages appear later in unrelated builds.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the config lives at the new path",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "ls src/content.config.ts 2>&1   # must exist\nls src/content/config.ts 2>&1      # must not"
+            }
+          ],
+          "expected": "Only the root-level config file exists.",
+          "minutes": 2
+        },
+        {
+          "n": 2,
+          "title": "Confirm every collection declares a loader",
+          "body": [
+            {
+              "type": "p",
+              "text": "Astro 5 requires a `loader` per collection. A collection defined with only `schema` and no loader is invalid, and the failure message points at the config rather than at the render call."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "code": "const blog = defineCollection({\n  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),\n  schema: z.object({ /* ... */ }),\n});"
+            }
+          ],
+          "expected": "Every collection in the config has a loader.",
+          "minutes": 4
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "cmd": "npx astro build",
+    "expect": "Complete! and entry pages contain their Markdown body"
+  },
+  "prevention": [
+    "Read the Astro 5 upgrade guide before bumping the dependency — the content API changes are behavioural, not just renames.",
+    "Grep for `.render()` as the first step of any Astro 4 to 5 upgrade; it finds every affected file in one command.",
+    "Migrate the config path and loader in the same commit as the version bump, so a half-finished upgrade never lands on main."
+  ],
+  "seeAlsoIds": [
+    "content-collections-invalid-frontmatter",
+    "content-collections-empty-collection"
+  ],
+  "faq": [
+    {
+      "q": "Is there a compatibility shim so I do not have to change every file?",
+      "a": "Not officially. The rewrite is mechanical — one import plus one call per file — so a shim would add a dependency to avoid about ten minutes of editing, which is rarely a good trade on a build-time API."
+    },
+    {
+      "q": "Does render still return headings?",
+      "a": "Yes. The return shape is unchanged: `Content` plus `headings` and `remarkPluginFrontmatter`. Only the way you invoke it changed."
+    },
+    {
+      "q": "What if I use MDX?",
+      "a": "The same call works, provided the MDX integration is installed. Without the integration, MDX files are loaded as entries but `render()` cannot compile them, and you get a different error about a missing plugin rather than a missing method."
+    },
+    {
+      "q": "The error says render is not a function on an object I did not create. Why?",
+      "a": "A component is receiving an entry through props and calling the old method on it. The call site is usually in a shared card or list component rather than in the route file, so grepping only the pages directory misses it entirely."
+    },
+    {
+      "q": "Does this affect Data Store or remote collections too?",
+      "a": "Yes, and it is the reason the API changed. A remote entry is a plain data object with no prototype methods, so an instance method could never work for it. A standalone function that takes the entry works the same way for local files and remote sources."
+    },
+    {
+      "q": "Can I keep using the old API by pinning Astro 4?",
+      "a": "You can, and some projects do. The cost is missing the Content Layer, which is the feature that makes content from an API or CMS behave like local files. Weigh that against a mechanical edit that touches one import and one call per file."
+    }
+  ],
+  "tags": [
+    "content-collections",
+    "upgrade",
+    "build-errors"
+  ],
+  "published": "2026-03-11",
+  "updated": "2026-10-22"
+}

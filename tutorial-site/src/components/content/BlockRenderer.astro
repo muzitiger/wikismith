@@ -1,0 +1,175 @@
+---
+/**
+ * BlockRenderer — the single renderer for typed content blocks.
+ *
+ * Every tutorial body, error cause body, and legal page goes through here.
+ * No component writes prose markup of its own; they all delegate to this.
+ *
+ * Code blocks are NOT syntax-highlighted at build time on purpose: a highlighter
+ * adds a dependency and a large CSS payload for marginal benefit. Monospace +
+ * a left rule reads fine and ships zero JS.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { routes } from '@/lib/routes';
+import { inlineHtml, slugifyHeading } from '@/lib/blocks';
+
+type Blocks = CollectionEntry<'tutorials'>['data']['body'];
+type ErrorRef = { slug: string; message: string; answer: string };
+
+interface Props {
+  blocks: Blocks;
+  /** Needed to resolve `errorRef` blocks into internal links. */
+  topic: string;
+  errorIndex?: Map<string, ErrorRef>;
+}
+
+const { blocks, topic, errorIndex } = Astro.props;
+
+const toneStyle: Record<string, { cls: string; label: string }> = {
+  info: { cls: 'border-accent/30 bg-accent/[0.05] text-ink-300', label: 'Note' },
+  warn: { cls: 'border-warn/30 bg-warn/[0.06] text-ink-300', label: 'Careful' },
+  danger: { cls: 'border-danger/30 bg-danger/[0.06] text-ink-300', label: 'Warning' },
+};
+---
+
+<Fragment>
+  {
+    blocks.map((b) => {
+      switch (b.type) {
+        case 'p':
+          return <p set:html={inlineHtml(b.text)} />;
+
+        case 'h2':
+          /* Anchor id comes from the heading text so the TOC can link to it
+             without a second source of truth. Duplicate headings get -2, -3. */
+          return (
+            <h2
+              id={`section-${slugifyHeading(b.text)}`}
+              class="mt-10 mb-3 text-xl font-semibold text-ink-100 scroll-mt-24"
+              set:html={b.text}
+            />
+          );
+
+        case 'h3':
+          return <h3 class="mt-6 mb-2 text-base font-semibold text-ink-200" set:html={b.text} />;
+
+        case 'list': {
+          const Tag = b.ordered ? 'ol' : 'ul';
+          return (
+            <Tag class="my-4 space-y-1.5 pl-5">
+              {b.items.map((item) => (
+                <li class="list-item text-ink-300" style={b.ordered ? 'list-style: decimal' : 'list-style: disc'}>
+                  <span set:html={inlineHtml(item)} />
+                </li>
+              ))}
+            </Tag>
+          );
+        }
+
+        case 'code':
+          return (
+            <figure class="my-5">
+              {b.filename && (
+                <figcaption class="flex items-center gap-2 rounded-t-lg border border-b-0 border-ink-700 bg-ink-800 px-3 py-1.5 font-mono text-xs text-ink-400">
+                  {b.filename}
+                </figcaption>
+              )}
+              <pre
+                class:list={[
+                  'overflow-x-auto border border-ink-700 bg-ink-900 px-4 py-3 text-[0.8125rem] leading-relaxed text-ink-200',
+                  b.filename ? 'rounded-b-lg' : 'rounded-lg',
+                ]}
+              ><code class={`language-${b.lang} font-mono`}>{b.code}</code></pre>
+            </figure>
+          );
+
+        case 'table':
+          return (
+            <figure class="my-6 overflow-x-auto">
+              <table class="w-full border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-ink-700">
+                    {b.headers.map((h, i) => (
+                      <th
+                        scope="col"
+                        class:list={[
+                          'px-3 py-2 font-semibold text-ink-200',
+                          i === 0 ? 'text-left' : 'text-left',
+                        ]}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {b.rows.map((row) => (
+                    <tr class="border-b border-ink-800/70">
+                      {row.map((cell) => (
+                        <td class="px-3 py-2 align-top text-ink-300" set:html={inlineHtml(cell)} />
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {b.caption && (
+                <figcaption class="mt-2 text-xs text-ink-500">{b.caption}</figcaption>
+              )}
+            </figure>
+          );
+
+        case 'note': {
+          const tone = toneStyle[b.tone] ?? toneStyle.info!;
+          return (
+            <aside class:list={['my-5 rounded-lg border-l-[3px] px-4 py-3 text-sm leading-relaxed', tone.cls]}>
+              <p class="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wider opacity-70">
+                {tone.label}
+              </p>
+              <p set:html={inlineHtml(b.text)} />
+            </aside>
+          );
+        }
+
+        case 'image':
+          return (
+            <figure class="my-6">
+              <img
+                src={b.media.src}
+                alt={b.media.alt}
+                width={b.media.width}
+                height={b.media.height}
+                loading="lazy"
+                decoding="async"
+                class="w-full rounded-lg border border-ink-700"
+              />
+              {b.media.caption && (
+                <figcaption class="mt-2 text-xs text-ink-500">{b.media.caption}</figcaption>
+              )}
+            </figure>
+          );
+
+        case 'errorRef': {
+          const ref = errorIndex?.get(b.errorId);
+          if (!ref) return null;
+          return (
+            <a
+              href={routes.error(topic, ref.slug)}
+              class="my-4 flex gap-3 rounded-lg border border-danger/25 bg-danger/[0.04] px-4 py-3 no-underline transition-colors hover:border-danger/45"
+            >
+              <span class="mt-0.5 font-mono text-xs text-danger" aria-hidden="true">!</span>
+              <span class="min-w-0">
+                <span class="block text-xs font-medium text-danger/90">
+                  Running into: <span class="font-mono">{ref.message}</span>
+                </span>
+                <span class="mt-1 block text-sm text-ink-300">{ref.answer}</span>
+              </span>
+            </a>
+          );
+        }
+
+        default:
+          return null;
+      }
+    })
+  }
+</Fragment>

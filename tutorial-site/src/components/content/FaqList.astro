@@ -1,0 +1,36 @@
+---
+/**
+ * B7 FaqList — the visible FAQ.
+ *
+ * Rendered from the same array that feeds FAQPage JSON-LD, so the markup and
+ * the structured data can never disagree (Google checks this).
+ *
+ * Uses <details> — no JS, keyboard accessible, and the content is in the DOM
+ * for crawlers even when collapsed (closed <details> is still indexed).
+ */
+import RichText from '@/components/content/RichText.astro';
+
+interface Props {
+  faq: Array<{ q: string; a: string }>;
+}
+
+const { faq } = Astro.props;
+---
+
+{faq.length > 0 && (
+  <div class="mt-4 divide-y divide-ink-800 border-y border-ink-800" data-block="faq">
+    {faq.map((item) => (
+      <details class="group py-1">
+        <summary class="flex cursor-pointer list-none items-start gap-3 py-3.5 text-[0.9375rem] font-medium text-ink-200 hover:text-white">
+          <span class="mt-0.5 text-accent/60 transition-transform group-open:rotate-90" aria-hidden="true">
+            <svg class="size-4" viewBox="0 0 16 16" fill="none">
+              <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <RichText class="flex-1" text={item.q} />
+        </summary>
+        <RichText as="div" class="pb-4 pl-7 pr-2 text-sm leading-relaxed text-ink-400" text={item.a} />
+      </details>
+    ))}
+  </div>
+)}

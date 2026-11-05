@@ -1,0 +1,252 @@
+{
+  "slug": "add-a-sitemap",
+  "topic": "astro",
+  "template": "howto",
+  "seo": {
+    "title": "How to Add a Sitemap to an Astro Site (3 Steps)",
+    "description": "Add a sitemap.xml to Astro with the official integration, point it at the right domain, and verify Google can read it. Includes the multi-site gotcha."
+  },
+  "h1": "How to Add a Sitemap in Astro (3 Steps)",
+  "answer": "Install @astrojs/sitemap, set site in astro.config.mjs to your full origin, and add the integration. The build then writes sitemap-index.xml and sitemap-0.xml into dist automatically.",
+  "excerpt": "Wire up the official Astro sitemap integration, set the canonical origin correctly, and confirm crawlers can actually fetch the file.",
+  "primaryKeyword": "how to add a sitemap in astro",
+  "secondaryKeywords": [
+    "astro sitemap integration",
+    "astro sitemap.xml",
+    "astro seo setup"
+  ],
+  "difficulty": "beginner",
+  "totalMinutes": 12,
+  "testedWith": {
+    "version": "5.18.2",
+    "date": "2026-10-25",
+    "environment": "macOS 15.6 / Node 22.11"
+  },
+  "prerequisites": [
+    {
+      "text": "A working Astro project that builds successfully",
+      "kind": "tool",
+      "required": true,
+      "verify": {
+        "cmd": "npx astro build",
+        "expect": "Complete!"
+      }
+    },
+    {
+      "text": "A deployed domain, or knowledge of the production URL",
+      "kind": "account",
+      "required": true
+    },
+    {
+      "text": "Node.js 18.17 or newer",
+      "kind": "tool",
+      "version": ">=18.17",
+      "required": true,
+      "verify": {
+        "cmd": "node --version",
+        "expect": "v20.x or v22.x"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "title": "Set the site origin in the Astro config",
+      "subSteps": [
+        {
+          "title": "site must be the production origin, not localhost",
+          "text": "The integration reads `site` to build absolute URLs. A localhost value produces a sitemap full of unreachable URLs that Search Console rejects."
+        },
+        {
+          "title": "No trailing slash",
+          "text": "Astro normalizes this, but a trailing slash in the raw config has caused double-slash URLs in older versions. Leave it off."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Open `astro.config.mjs` and set the `site` field to your production origin. This field is not optional for sitemap generation — without it the integration has no way to make absolute URLs and silently skips generation."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "filename": "astro.config.mjs",
+          "code": "import { defineConfig } from 'astro/config';\nimport sitemap from '@astrojs/sitemap';\n\nexport default defineConfig({\n  site: 'https://example.com',\n  integrations: [sitemap()],\n});\n"
+        },
+        {
+          "type": "note",
+          "tone": "warn",
+          "text": "If you develop against a staging domain, do not put the staging URL in `site`. Use an environment variable so the production build gets the production origin."
+        }
+      ],
+      "expected": "astro.config.mjs contains a site value equal to your production origin with no trailing slash.",
+      "minutes": 3,
+      "errorIds": []
+    },
+    {
+      "n": 2,
+      "title": "Install and register the integration",
+      "subSteps": [
+        {
+          "title": "Use the Astro CLI so the version matches",
+          "text": "`npx astro add sitemap` installs the matching package version and edits the config for you."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Run the Astro CLI rather than installing the package by hand. It picks a version compatible with your Astro release and writes the integration entry — two things that are easy to get subtly wrong manually."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "code": "npx astro add sitemap"
+        },
+        {
+          "type": "p",
+          "text": "The command prints the changes it plans to make and asks for confirmation. Accept both. If you already added the import in step 1, it will skip that part and only install the dependency."
+        },
+        {
+          "type": "p",
+          "text": "By default the integration includes every statically generated page. If you have pages that should never be indexed — draft previews, internal search results — filter them out with the `filter` option rather than by leaving them out of the build, because an unlisted-but-live page is worse than an excluded one."
+        }
+      ],
+      "expected": "package.json lists @astrojs/sitemap and astro.config.mjs registers sitemap() in integrations.",
+      "verify": {
+        "cmd": "grep sitemap package.json",
+        "expect": "\"@astrojs/sitemap\""
+      },
+      "minutes": 4,
+      "errorIds": [
+        "sitemap-not-generated"
+      ]
+    },
+    {
+      "n": 3,
+      "title": "Build and verify the output",
+      "subSteps": [
+        {
+          "title": "Two files appear, not one",
+          "text": "Astro writes sitemap-index.xml plus one or more sitemap-N.xml files. Submit the index."
+        },
+        {
+          "title": "Check the URLs are absolute and canonical",
+          "text": "Every loc should start with your production origin and end with the trailing-slash form your site actually serves."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Build the site and inspect the output directory. You should see `sitemap-index.xml` and at least one numbered file."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "code": "npx astro build && ls dist | grep sitemap\n# sitemap-0.xml\n# sitemap-index.xml"
+        },
+        {
+          "type": "p",
+          "text": "Open the index file. It points at the numbered file rather than listing URLs directly, which is the sitemap index format — a sitemap of sitemaps. Submit the index to Search Console; submitting both causes duplicate submission warnings."
+        },
+        {
+          "type": "code",
+          "lang": "xml",
+          "filename": "dist/sitemap-index.xml",
+          "code": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <sitemap>\n    <loc>https://example.com/sitemap-0.xml</loc>\n  </sitemap>\n</sitemapindex>\n"
+        },
+        {
+          "type": "p",
+          "text": "Finally, confirm the file is reachable over HTTP rather than only existing on disk. A robots.txt rule or a host configuration that blocks `.xml` will serve a 404 for a file that builds perfectly."
+        }
+      ],
+      "expected": "dist contains sitemap-index.xml and the deployed site serves it with a 200 response.",
+      "verify": {
+        "cmd": "curl -sI https://example.com/sitemap-index.xml | head -1",
+        "expect": "HTTP/2 200"
+      },
+      "minutes": 5,
+      "errorIds": [
+        "sitemap-not-generated"
+      ]
+    }
+  ],
+  "body": [
+    {
+      "type": "h2",
+      "text": "Why the sitemap is not generated at all"
+    },
+    {
+      "type": "p",
+      "text": "The integration fails silently in one specific case: `site` is undefined. There is no way for it to construct absolute URLs, and the sitemaps protocol requires absolute URLs, so it produces nothing. No warning, no error, just a missing file after a build that otherwise succeeded.\n\nThis is worth knowing because it is the exact failure people hit when they copy a config from a tutorial that omitted `site` because the author's project already had it."
+    },
+    {
+      "type": "h2",
+      "text": "Adding lastmod without lying about it"
+    },
+    {
+      "type": "p",
+      "text": "The integration supports a `serialize` callback, which is where you add `lastmod`. The temptation is to set it to the current build time. Do not. A sitemap where every URL claims to have changed today, every day, teaches crawlers that your lastmod is meaningless, and they start ignoring the field entirely.\n\nSet it from real data: your content's `updated` date, or the file's modification time. If you do not have a real date, omit the field. An absent lastmod is neutral; a fabricated one is actively harmful."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "code": "sitemap({\n  serialize(item) {\n    // Only emit lastmod when it comes from real content metadata.\n    if (item.url.includes('/blog/')) {\n      item.lastmod = new Date().toISOString(); // replace with real per-page data\n    }\n    return item;\n  },\n})"
+    },
+    {
+      "type": "h2",
+      "text": "Excluding pages correctly"
+    },
+    {
+      "type": "p",
+      "text": "The `filter` option decides what goes in. Two categories deserve exclusion: pages marked noindex in their own markup, and utility pages nobody should land on from search.\n\nListing a noindex page in your sitemap is a contradiction. Search Console reports it as an error, and the practical effect is that you are spending crawl budget asking Google to look at pages you have told it to ignore."
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "items": [
+        "Exclude anything with a noindex meta tag.",
+        "Exclude thank-you and confirmation pages — they are reachable only after a form submit.",
+        "Exclude internal search result pages; they generate infinite URL permutations.",
+        "Keep tag and category archives only if each has enough unique content to stand alone."
+      ]
+    }
+  ],
+  "errorIds": [
+    "sitemap-not-generated"
+  ],
+  "faq": [
+    {
+      "q": "Should I submit sitemap-index.xml or sitemap-0.xml?",
+      "a": "Submit the index. It references every numbered child file, so as your site grows past the 50,000 URL limit, new children are picked up without resubmitting anything."
+    },
+    {
+      "q": "My sitemap has a trailing slash on every URL but my site does not. Does it matter?",
+      "a": "It matters if it causes a redirect. A sitemap URL that 301s to a different path is a wasted crawl. Set `trailingSlash` in the Astro config to match what your host actually serves, so the sitemap and the served URL agree."
+    },
+    {
+      "q": "Does adding a sitemap guarantee faster indexing?",
+      "a": "No. It guarantees discovery, not indexing. A sitemap tells a crawler the URL exists; whether it gets indexed still depends on content quality, internal links, and site authority."
+    },
+    {
+      "q": "Can I hand-write a sitemap instead of using the integration?",
+      "a": "You can, via a route that returns XML, and it is the right approach when you need full control over grouping. The cost is maintaining the URL list yourself, which drifts the moment someone adds a page."
+    },
+    {
+      "q": "Does the integration add the sitemap to robots.txt automatically?",
+      "a": "No. robots.txt is a separate concern, so either add the Sitemap line yourself or generate the file at build time so the URL always matches the canonical origin rather than a hardcoded domain."
+    }
+  ],
+  "relatedIds": [
+    "content-collections-tutorial",
+    "create-dynamic-routes"
+  ],
+  "tags": [
+    "seo",
+    "configuration",
+    "deployment"
+  ],
+  "published": "2026-02-18",
+  "updated": "2026-10-25",
+  "seriesId": "astro-fundamentals",
+  "order": 4
+}

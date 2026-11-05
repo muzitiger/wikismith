@@ -1,0 +1,88 @@
+---
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+
+interface Props {
+  topics: Array<{ slug: string; name: string }>;
+}
+
+const { topics } = Astro.props;
+const path = Astro.url.pathname;
+
+const isActive = (p: string) => path === p || (p !== '/' && path.startsWith(p));
+---
+
+<header class="sticky top-0 z-50 border-b border-ink-800/80 bg-ink-950/85 backdrop-blur-md">
+  <div class="shell flex h-16 items-center gap-6">
+    <a href={routes.hub()} class="flex items-center gap-2.5 shrink-0 group">
+      <span
+        class="grid size-8 place-items-center rounded-md bg-accent text-accent-ink font-mono text-sm font-bold"
+        aria-hidden="true">T</span
+      >
+      <span class="text-sm font-semibold tracking-tight text-ink-100 group-hover:text-white transition-colors">
+        {UI.siteName}
+      </span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-1 text-sm" aria-label={UI.nav.menuLabel}>
+      <a
+        href={routes.hub()}
+        class:list={[
+          'rounded-md px-3 py-2 transition-colors',
+          isActive('/') && path === '/' ? 'text-ink-100 bg-ink-800' : 'text-ink-400 hover:text-ink-100 hover:bg-ink-900',
+        ]}>{UI.nav.home}</a
+      >
+      {
+        topics.map((t) => (
+          <a
+            href={routes.topic(t.slug)}
+            class:list={[
+              'rounded-md px-3 py-2 transition-colors',
+              isActive(`/${t.slug}`)
+                ? 'text-ink-100 bg-ink-800'
+                : 'text-ink-400 hover:text-ink-100 hover:bg-ink-900',
+            ]}
+          >
+            {t.name}
+          </a>
+        ))
+      }
+      <a
+        href={routes.comparisons()}
+        class:list={[
+          'rounded-md px-3 py-2 transition-colors',
+          isActive('/vs')
+            ? 'text-ink-100 bg-ink-800'
+            : 'text-ink-400 hover:text-ink-100 hover:bg-ink-900',
+        ]}>{UI.nav.comparisons}</a
+      >
+    </nav>
+
+    <div class="ml-auto flex items-center gap-2">
+      <a
+        href={routes.comparisons()}
+        class="md:hidden rounded-md border border-ink-700 px-3 py-1.5 text-xs text-ink-300"
+        >{UI.nav.comparisons}</a
+      >
+    </div>
+  </div>
+
+  {/* Mobile topic strip — no JS, just a horizontally scrollable row. */}
+  <div class="md:hidden border-t border-ink-800/60">
+    <div class="shell flex gap-1 overflow-x-auto py-2 text-xs">
+      {
+        topics.map((t) => (
+          <a
+            href={routes.topic(t.slug)}
+            class:list={[
+              'whitespace-nowrap rounded-md px-2.5 py-1.5',
+              isActive(`/${t.slug}`) ? 'bg-ink-800 text-ink-100' : 'text-ink-400',
+            ]}
+          >
+            {t.name}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</header>

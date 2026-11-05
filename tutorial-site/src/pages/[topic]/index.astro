@@ -1,0 +1,337 @@
+---
+/**
+ * TOPIC HUB — /{topic}/
+ *
+ * For `kind: primary`, this is the topic's front door: pillars, error index,
+ * series, and a full tutorial list. For `kind: stub`, it renders a short
+ * reference page with an outbound link and the comparisons it participates in.
+ *
+ * Both share one route so a topic's URL never changes as it graduates from
+ * a comparison reference to a full tutorial set.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import {
+  getTopics,
+  getTutorialsByTopic,
+  getErrorsByTopic,
+  getSeriesForTopic,
+  getComparisonsForTopic,
+  resolveSeriesItems,
+  getPillars,
+  getNonPillarTutorials,
+} from '@/lib/content';
+import { topicNode, breadcrumbNode, itemListNode, faqNode } from '@/lib/jsonld';
+import RichText from '@/components/content/RichText.astro';
+
+export async function getStaticPaths() {
+  const topics = await getTopics();
+  return topics.map((t) => ({ params: { topic: t.id }, props: { topic: t } }));
+}
+
+const { topic } = Astro.props;
+const d = topic.data;
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+const path = routes.topic(topic.id);
+const topicName = d.nameShort ?? d.name;
+const noindex = d.status === 'draft';
+
+const isPrimary = d.kind === 'primary';
+
+const [pillars, tutorials, errors, seriesList, comparisons] = await Promise.all([
+  isPrimary ? getPillars(topic.id) : Promise.resolve([]),
+  isPrimary ? getNonPillarTutorials(topic.id) : Promise.resolve([]),
+  isPrimary ? getErrorsByTopic(topic.id) : Promise.resolve([]),
+  isPrimary ? getSeriesForTopic(topic.id) : Promise.resolve([]),
+  getComparisonsForTopic(topic.id),
+]);
+
+const allTutorials = isPrimary ? await getTutorialsByTopic(topic.id) : [];
+
+const crumbs = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: topicName, path },
+];
+
+const jsonLd = [
+  breadcrumbNode({ origin }, crumbs),
+  topicNode({ origin }, topic, path),
+  ...(faqNode(d.faq) ? [faqNode(d.faq)!] : []),
+  ...(isPrimary && allTutorials.length
+    ? [
+        itemListNode({ origin }, {
+          name: `All ${topicName} tutorials`,
+          path,
+          items: allTutorials.map((t) => ({
+            name: t.data.h1,
+            path: routes.tutorial(topic.id, t.id),
+          })),
+        }),
+      ]
+    : []),
+];
+
+/* Intro is plain prose with blank-line paragraphs. */
+const introParas = d.intro.split('\n\n').filter(Boolean);
+---
+
+<BaseLayout
+  title={d.seo.title}
+  description={d.seo.description}
+  canonical={d.seo.canonical}
+  noindex={noindex || d.seo.noindex}
+  ogImage={d.seo.ogImage}
+  titleSuffix={UI.siteName}
+  jsonLd={jsonLd}
+  ogType="website"
+  modifiedTime={d.updated}
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_16rem]">
+    <div class="min-w-0">
+      <header class="max-w-3xl">
+        <div class="flex items-center gap-3">
+          <span
+            class="grid size-11 shrink-0 place-items-center rounded-xl font-mono text-lg font-bold"
+            style={`background:${d.color ?? '#7dd3fc'}1a;color:${d.color ?? '#7dd3fc'}`}
+            aria-hidden="true"
+          >
+            {d.name.charAt(0)}
+          </span>
+          <div>
+            <h1 class="text-3xl font-bold tracking-tight text-white md:text-4xl">{d.name}</h1>
+            <p class="mt-1 text-sm text-ink-500">{d.category} · v{d.currentVersion}</p>
+          </div>
+        </div>
+
+        <RichText as="p" class="mt-5 text-lg leading-relaxed text-ink-400" text={d.tagline} />
+      </header>
+
+      <div class="mt-8 prose-docs max-w-3xl">
+        {introParas.map((p) => <p>{p}</p>)}
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-3 text-sm">
+        <a
+          href={d.officialUrl}
+          rel="nofollow noopener"
+          target="_blank"
+          class="rounded-lg border border-ink-700 px-3.5 py-2 text-ink-300 transition-colors hover:border-ink-500 hover:text-white"
+        >
+          Official site
+        </a>
+        <a
+          href={d.docsUrl}
+          rel="nofollow noopener"
+          target="_blank"
+          class="rounded-lg border border-ink-700 px-3.5 py-2 text-ink-300 transition-colors hover:border-ink-500 hover:text-white"
+        >
+          Documentation
+        </a>
+      </div>
+
+      {
+        isPrimary && (
+          <>
+            {/* Pillars */}
+            {pillars.length > 0 && (
+              <section class="mt-14">
+                <h2 class="text-xl font-semibold text-ink-100">In-depth guides</h2>
+                <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                  {pillars.map((p) => (
+                    <a
+                      href={routes.tutorial(topic.id, p.id)}
+                      class="group rounded-xl border border-ink-800 bg-ink-900/40 p-5 transition-colors hover:border-ink-600 hover:bg-ink-900"
+                    >
+                      <h3 class="text-sm font-semibold leading-snug text-ink-100 group-hover:text-white">
+                        {p.data.h1}
+                      </h3>
+                      <RichText as="p" class="mt-2 line-clamp-3 text-xs leading-relaxed text-ink-500" text={p.data.excerpt} />
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Series */}
+            {seriesList.length > 0 && (
+              <section class="mt-14">
+                <h2 class="text-xl font-semibold text-ink-100">Learning paths</h2>
+                <ul class="mt-5 space-y-3">
+                  {await Promise.all(
+                    seriesList.map(async (s) => {
+                      const items = await resolveSeriesItems(s);
+                      return (
+                        <li>
+                          <a
+                            href={routes.series(topic.id, s.id)}
+                            class="group flex flex-col gap-2 rounded-xl border border-ink-800 bg-ink-900/40 p-5 transition-colors hover:border-ink-600 hover:bg-ink-900 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div class="min-w-0">
+                              <h3 class="text-sm font-semibold text-ink-100 group-hover:text-white">{s.data.h1}</h3>
+                              <p class="mt-1 line-clamp-1 text-xs text-ink-500">
+                                {items.map((i) => i.data.h1).join(' → ')}
+                              </p>
+                            </div>
+                            <span class="shrink-0 rounded-full border border-ink-700 px-2.5 py-1 font-mono text-[0.625rem] text-ink-400">
+                              {items.length} parts
+                            </span>
+                          </a>
+                        </li>
+                      );
+                    })
+                  )}
+                </ul>
+              </section>
+            )}
+
+            {/* All tutorials grouped by template */}
+            {tutorials.length > 0 && (
+              <section class="mt-14">
+                <h2 class="text-xl font-semibold text-ink-100">
+                  All {topicName} guides
+                  <span class="ml-2 font-mono text-sm font-normal text-ink-600">{allTutorials.length}</span>
+                </h2>
+                <ul class="mt-5 divide-y divide-ink-800 rounded-xl border border-ink-800">
+                  {tutorials.map((t) => (
+                    <li>
+                      <a
+                        href={routes.tutorial(topic.id, t.id)}
+                        class="group flex flex-col gap-1 px-5 py-4 transition-colors hover:bg-ink-900/60"
+                      >
+                        <span class="flex items-start justify-between gap-3">
+                          <span class="text-sm font-medium leading-snug text-ink-200 group-hover:text-white">
+                            {t.data.h1}
+                          </span>
+                          <span class="shrink-0 font-mono text-[0.625rem] uppercase tracking-wider text-ink-600">
+                            {UI.meta[t.data.difficulty]}
+                          </span>
+                        </span>
+                        <RichText class="text-xs leading-relaxed text-ink-500" text={t.data.excerpt} />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {/* Errors */}
+            {errors.length > 0 && (
+              <section class="mt-14">
+                <div class="flex items-baseline justify-between gap-4">
+                  <h2 class="text-xl font-semibold text-ink-100">{UI.section.errors}</h2>
+                  <a href={routes.errors(topic.id)} class="text-xs text-accent hover:underline">
+                    {UI.section.allErrors} &rarr;
+                  </a>
+                </div>
+                <ul class="mt-5 divide-y divide-ink-800 rounded-xl border border-ink-800">
+                  {errors.slice(0, 6).map((e) => (
+                    <li>
+                      <a
+                        href={routes.error(topic.id, e.id)}
+                        class="group flex flex-col gap-1 px-5 py-3.5 transition-colors hover:bg-ink-900/60"
+                      >
+                        <code class="font-mono text-[0.8125rem] text-ink-200 group-hover:text-white">
+                          {e.data.message}
+                        </code>
+                        <RichText class="text-xs text-ink-500" text={e.data.answer} />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
+        )
+      }
+
+      {/* Comparisons this topic participates in — shown for both kinds */}
+      {
+        comparisons.length > 0 && (
+          <section class="mt-14">
+            <h2 class="text-xl font-semibold text-ink-100">Comparisons</h2>
+            <div class="mt-5 grid gap-3 sm:grid-cols-2">
+              {comparisons.map((c) => (
+                <a
+                  href={routes.comparison(c.id)}
+                  class="group rounded-lg border border-ink-800 bg-ink-900/40 px-4 py-3 transition-colors hover:border-ink-600 hover:bg-ink-900"
+                >
+                  <span class="text-sm font-medium text-ink-200 group-hover:text-white">{c.data.h1}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {/* FAQ */}
+      {
+        d.faq.length > 0 && (
+          <section class="mt-14 max-w-3xl">
+            <h2 class="text-xl font-semibold text-ink-100">{UI.section.faq}</h2>
+            <div class="mt-4 divide-y divide-ink-800 border-y border-ink-800">
+              {d.faq.map((item) => (
+                <details class="group py-1">
+                  <summary class="flex cursor-pointer list-none items-start gap-3 py-3.5 text-[0.9375rem] font-medium text-ink-200 hover:text-white">
+                    <span class="mt-0.5 text-accent/60 transition-transform group-open:rotate-90" aria-hidden="true">
+                      <svg class="size-4" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </span>
+                    <RichText class="flex-1" text={item.q} />
+                  </summary>
+                  <RichText as="div" class="pb-4 pl-7 pr-2 text-sm leading-relaxed text-ink-400" text={item.a} />
+                </details>
+              ))}
+            </div>
+          </section>
+        )
+      }
+    </div>
+
+    {/* Sidebar */}
+    <aside class="hidden lg:block">
+      <div class="sticky top-24 space-y-6 text-sm">
+        {
+          d.features.length > 0 && (
+            <div>
+              <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-500">Key features</p>
+              <ul class="space-y-1.5">
+                {d.features.map((f) => (
+                  <li class="text-ink-400">{f.label}</li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+
+        {
+          d.rivalIds.length > 0 && (
+            <div>
+              <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-500">Compared with</p>
+              <ul class="space-y-1.5">
+                {d.rivalIds.map((r) => (
+                  <li>
+                    <a href={routes.topic(r)} class="text-ink-400 hover:text-accent">
+                      {r}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+
+        <div class="border-t border-ink-800 pt-4">
+          <p class="text-xs text-ink-600">
+            {UI.meta.updated} {d.updated.toISOString().slice(0, 10)}
+          </p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

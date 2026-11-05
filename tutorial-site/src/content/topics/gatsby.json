@@ -1,0 +1,25 @@
+{
+  "slug": "gatsby",
+  "name": "Gatsby",
+  "nameShort": "Gatsby",
+  "tagline": "The React-based static site generator built around GraphQL",
+  "seo": {
+    "title": "Gatsby: Overview, Strengths, and Trade-offs in 2026",
+    "description": "What Gatsby is today, why its GraphQL data layer was influential, and what to consider before starting a new project on it."
+  },
+  "kind": "stub",
+  "status": "live",
+  "intro": "Gatsby popularized the idea of a React static site generator with a normalized GraphQL data layer: plugins pulled content from anywhere, unified it into one schema, and pages queried that schema at build time. For a period it was the default choice for React developers who wanted a content site, and its plugin ecosystem was the main reason people picked it.\n\nIts trajectory since then is the honest part of the story. Maintenance pace slowed, the GraphQL layer became a source of friction as projects grew, and frameworks that compile away the client runtime took over the content-site niche. Gatsby still runs existing sites fine, and its incremental build story is real. For a new build in 2026, most teams are weighing it against far more active alternatives. This is a reference entry used by the comparison and migration pages.",
+  "category": "Static site generator",
+  "currentVersion": "5.14",
+  "officialUrl": "https://www.gatsbyjs.com",
+  "docsUrl": "https://www.gatsbyjs.com/docs/",
+  "color": "#663399",
+  "features": [
+    { "id": "graphql", "label": "GraphQL Data Layer" },
+    { "id": "plugins", "label": "Plugin Ecosystem" }
+  ],
+  "rivalIds": ["astro", "nextjs"],
+  "faq": [],
+  "updated": "2026-11-01"
+}

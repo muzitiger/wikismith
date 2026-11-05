@@ -1,0 +1,115 @@
+---
+/**
+ * B4 StepList — the numbered steps.
+ *
+ * Structural contract (this is the whole point of the template):
+ *   step       → <h2 id="step-{n}">Step {n} — {title}</h2>
+ *   subStep    → <h3>                                   (inside a step)
+ *   expected   → a fixed block, NOT a heading, NOT an extra step
+ *
+ * Why H2 for steps: the JSON-LD `position` and the visible heading index must
+ * be identical. If steps were H3 under one "Steps" H2, the table of contents
+ * would show a single entry and the page would lose its scannable spine.
+ *
+ * Why `expected` is not a step: Google renders HowTo.step as the list of things
+ * the reader does. "Confirm it worked" is not an action the reader performs on
+ * the codebase; folding it in inflates the step count and misleads the snippet.
+ */
+import BlockRenderer from '@/components/content/BlockRenderer.astro';
+import { inlineHtml } from '@/lib/blocks';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  steps: CollectionEntry<'tutorials'>['data']['steps'];
+  topic: string;
+  errorIndex?: Map<string, { slug: string; message: string; answer: string }>;
+}
+
+const { steps, topic, errorIndex } = Astro.props;
+
+const sorted = [...steps].sort((a, b) => a.n - b.n);
+---
+
+<div class="mt-2" data-block="steps">
+  {
+    sorted.map((step) => {
+      const errs = (step.errorIds ?? [])
+        .map((id) => errorIndex?.get(id))
+        .filter((e): e is { slug: string; message: string; answer: string } => Boolean(e));
+
+      return (
+        <section class="mt-12 first:mt-6" id={`step-${step.n}`} data-step={step.n}>
+          <h2 class="group flex items-baseline gap-3 text-xl font-semibold text-ink-100 scroll-mt-24">
+            {/*
+              Accent bar, not a second number. A "01" badge next to "Step 1"
+              reads as a rendering bug, and the numeral is already in the
+              heading text — which has to be there because that exact string
+              is what HowTo.name emits.
+            */}
+            <span class="mt-2 h-4 w-[3px] shrink-0 rounded-full bg-accent/50" aria-hidden="true" />
+            <span class="flex-1">
+              Step {step.n} — {step.title}
+            </span>
+            {step.minutes && (
+              <span class="shrink-0 font-mono text-xs font-normal text-ink-600">
+                ~{step.minutes} min
+              </span>
+            )}
+          </h2>
+
+          <div class="mt-4 pl-0 sm:pl-8 prose-docs">
+            {step.subSteps.length > 0 && (
+              <div class="mb-4 space-y-4">
+                {step.subSteps.map((sub) => (
+                  <div>
+                    <h3 class="text-base font-semibold text-ink-200" set:html={inlineHtml(sub.title)} />
+                    <p class="mt-1 text-ink-300" set:html={inlineHtml(sub.text)} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <BlockRenderer blocks={step.body} topic={topic} errorIndex={errorIndex} />
+          </div>
+
+          {/* Expected result — the trust anchor of every step. */}
+          <div class="mt-4 sm:ml-8 rounded-lg border border-ok/25 bg-ok/[0.04] px-4 py-3">
+            <p class="flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-ok/90">
+              <svg class="size-3.5" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 8.5l3.2 3L13 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              {UI.section.expected}
+            </p>
+            <p class="mt-1.5 text-sm leading-relaxed text-ink-300" set:html={inlineHtml(step.expected)} />
+            {step.verify && (
+              <div class="mt-2.5 rounded-md border border-ink-700 bg-ink-900/70 px-3 py-2">
+                <code class="block font-mono text-xs text-accent break-all">$ {step.verify.cmd}</code>
+                <p class="mt-1 font-mono text-xs text-ink-400">
+                  <span class="text-ink-500">&rarr;</span> {step.verify.expect}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {errs.length > 0 && (
+            <div class="mt-3 sm:ml-8">
+              <p class="text-xs text-ink-500">
+                Step fails?{' '}
+                {errs.map((e, idx) => (
+                  <>
+                    {idx > 0 && ', '}
+                    <a href={routes.error(topic, e.slug)} class="text-danger/90 hover:underline">
+                      {e.message}
+                    </a>
+                  </>
+                ))}
+              </p>
+            </div>
+          )}
+        </section>
+      );
+    })
+  }
+</div>

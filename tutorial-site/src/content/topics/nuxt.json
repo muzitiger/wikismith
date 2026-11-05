@@ -1,0 +1,25 @@
+{
+  "slug": "nuxt",
+  "name": "Nuxt",
+  "nameShort": "Nuxt",
+  "tagline": "The Vue framework for full-stack applications",
+  "seo": {
+    "title": "Nuxt: Overview, Strengths, and Trade-offs",
+    "description": "What Nuxt is, how its Vue-based full-stack model compares to content-first frameworks, and which projects should pick it instead."
+  },
+  "kind": "stub",
+  "status": "live",
+  "intro": "Nuxt is the application framework for Vue, offering file-based routing, server routes, auto-imports, and multiple rendering modes from a single codebase. Its biggest ergonomic advantage is convention: modules, auto-imported composables, and a documented directory structure mean a Nuxt project looks like every other Nuxt project. Switching between static generation, server rendering, and hybrid per-route rendering is a config change rather than a rewrite.\n\nThe trade-off mirrors other full-stack frameworks: you inherit a Vue runtime and a framework layer whether or not a given page needs it. For a marketing page or a documentation tree, that is weight you are paying for without using. For an application with authentication, sessions, and shared client state, it is exactly the scaffolding you would otherwise build yourself. This is a reference entry used by the comparison pages.",
+  "category": "Full-stack Vue framework",
+  "currentVersion": "3.17",
+  "officialUrl": "https://nuxt.com",
+  "docsUrl": "https://nuxt.com/docs",
+  "color": "#00dc82",
+  "features": [
+    { "id": "routing", "label": "File-based Routing" },
+    { "id": "auto-imports", "label": "Auto-imports" }
+  ],
+  "rivalIds": ["astro", "nextjs", "sveltekit"],
+  "faq": [],
+  "updated": "2026-11-01"
+}

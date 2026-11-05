@@ -1,0 +1,199 @@
+---
+/**
+ * COMPARISON DETAIL — /vs/{a}-vs-{b}/
+ *
+ * Lives at the root, not under a topic: "astro vs nextjs" is not owned by
+ * either side. Nesting it under /astro/ would make the same article reachable
+ * from two paths and force a canonical decision per pair.
+ *
+ * Both `kind: primary` and `kind: stub` topics can appear here, which is the
+ * whole point of the stub concept — a competitor needs a reference page, not
+ * a tutorial set.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import AnswerBox from '@/components/content/AnswerBox.astro';
+import FaqList from '@/components/content/FaqList.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import { getComparisons, requireTopic, getTutorialByTopicAndSlug } from '@/lib/content';
+import { comparisonPageNodes, type Crumb } from '@/lib/jsonld';
+import RichText from '@/components/content/RichText.astro';
+
+export async function getStaticPaths() {
+  const all = await getComparisons();
+  return all.map((c) => ({ params: { pair: c.id }, props: { comparison: c } }));
+}
+
+const { comparison } = Astro.props;
+const d = comparison.data;
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+
+const [sideA, sideB] = await Promise.all([requireTopic(d.aId), requireTopic(d.bId)]);
+const path = routes.comparison(comparison.id);
+
+const nameA = sideA.data.nameShort ?? sideA.data.name;
+const nameB = sideB.data.nameShort ?? sideB.data.name;
+
+/* If a migration tutorial exists, link it — it is the highest-intent next step. */
+const migration = d.migrationId ? await getTutorialByTopicAndSlug(d.bId === 'astro' ? d.bId : d.aId, d.migrationId) : undefined;
+
+const crumbs: Crumb[] = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: UI.nav.comparisons, path: routes.comparisons() },
+  { name: d.h1, path },
+];
+
+const jsonLd = comparisonPageNodes({ origin }, comparison, nameA, nameB, path, crumbs);
+
+const fmt = (dt: Date) =>
+  dt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+---
+
+<BaseLayout
+  title={d.seo.title}
+  description={d.seo.description}
+  canonical={d.seo.canonical}
+  noindex={d.seo.noindex}
+  ogImage={d.seo.ogImage}
+  titleSuffix={UI.siteName}
+  jsonLd={jsonLd}
+  publishedTime={d.published}
+  modifiedTime={d.updated}
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <article class="max-w-3xl min-w-0">
+    <header>
+      <p class="text-xs font-medium uppercase tracking-wider text-accent/70">Comparison</p>
+      <h1 class="mt-2 text-3xl font-bold leading-tight tracking-tight text-white md:text-[2.25rem] md:leading-[1.2]">
+        {d.h1}
+      </h1>
+
+      <div class="mt-5">
+        <AnswerBox answer={d.answer} label={UI.section.answer} />
+      </div>
+
+      <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-500">
+        <span class="font-mono">{nameA} {d.testedWith.aVersion} vs {nameB} {d.testedWith.bVersion}</span>
+        <span>Compared {fmt(d.testedWith.date)}</span>
+        <span>{UI.meta.updated} {fmt(d.updated)}</span>
+      </div>
+    </header>
+
+    <!-- Comparison table -->
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold text-ink-100">Side by side</h2>
+      <div class="mt-4 overflow-x-auto rounded-lg border border-ink-800">
+        <table class="w-full border-collapse text-sm">
+          <thead>
+            <tr class="border-b border-ink-800 bg-ink-900/60">
+              <th scope="col" class="px-3 py-2.5 text-left font-semibold text-ink-300">Aspect</th>
+              <th scope="col" class="px-3 py-2.5 text-left font-semibold text-ink-300">
+                <a href={routes.topic(sideA.id)} class="hover:text-accent">{nameA}</a>
+              </th>
+              <th scope="col" class="px-3 py-2.5 text-left font-semibold text-ink-300">
+                <a href={routes.topic(sideB.id)} class="hover:text-accent">{nameB}</a>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.rows.map((r) => (
+              <tr class="border-b border-ink-800/60 last:border-0 align-top">
+                <th scope="row" class="px-3 py-2.5 text-left font-medium text-ink-300">{r.feature}</th>
+                <RichText as="td" class:list={['px-3 py-2.5 text-ink-400', r.edge === 'a' && 'text-ink-100']} text={r.a} />
+                <RichText as="td" class:list={['px-3 py-2.5 text-ink-400', r.edge === 'b' && 'text-ink-100']} text={r.b} />
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-ink-600">
+        Highlighted cells indicate an advantage on that row. Rows without a highlight are close
+        enough that the difference does not decide a project.
+      </p>
+    </section>
+
+    <!-- Wins -->
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-ink-100">Where {nameA} wins</h2>
+      <ul class="mt-4 space-y-3">
+        {d.winsA.map((w) => (
+          <li class="flex gap-2.5 text-[0.9375rem] leading-relaxed text-ink-400">
+            <span class="mt-1.5 size-1 shrink-0 rounded-full bg-accent/60" aria-hidden="true" />
+            <RichText text={w} />
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold text-ink-100">Where {nameB} wins</h2>
+      <ul class="mt-4 space-y-3">
+        {d.winsB.map((w) => (
+          <li class="flex gap-2.5 text-[0.9375rem] leading-relaxed text-ink-400">
+            <span class="mt-1.5 size-1 shrink-0 rounded-full bg-ink-500" aria-hidden="true" />
+            <RichText text={w} />
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Verdicts -->
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-ink-100">{UI.section.verdict}</h2>
+      <ul class="mt-4 divide-y divide-ink-800 rounded-lg border border-ink-800">
+        {d.verdicts.map((v) => {
+          const pickName = v.pick === 'a' ? nameA : v.pick === 'b' ? nameB : 'Either';
+          return (
+            <li class="px-4 py-3.5">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <RichText class="text-sm font-medium text-ink-200" text={v.scenario} />
+                <span class="rounded-full border border-accent/30 bg-accent/[0.08] px-2.5 py-0.5 font-mono text-[0.625rem] text-accent">
+                  {pickName}
+                </span>
+              </div>
+              <RichText as="p" class="mt-1.5 text-sm leading-relaxed text-ink-500" text={v.why} />
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+
+    <!-- Migration -->
+    {
+      (migration || d.migrationId) && (
+        <section class="mt-12">
+          <h2 class="text-xl font-semibold text-ink-100">Switching sides</h2>
+          <a
+            href={migration ? routes.tutorial(migration.data.topic, migration.id) : routes.topic(sideA.id)}
+            class="mt-4 flex items-center justify-between gap-4 rounded-lg border border-ink-800 bg-ink-900/40 px-4 py-3.5 transition-colors hover:border-ink-600"
+          >
+            <span class="text-sm text-ink-300">
+              {migration ? migration.data.h1 : `Migration guide`}
+            </span>
+            <span class="text-accent" aria-hidden="true">&rarr;</span>
+          </a>
+        </section>
+      )
+    }
+
+    <!-- FAQ -->
+    {
+      d.faq.length > 0 && (
+        <section class="mt-12">
+          <h2 class="text-xl font-semibold text-ink-100">{UI.section.faq}</h2>
+          <FaqList faq={d.faq} />
+        </section>
+      )
+    }
+
+    <div class="mt-14 flex flex-wrap gap-3 border-t border-ink-800 pt-6 text-sm">
+      <a href={routes.comparisons()} class="text-accent hover:underline">&larr; {UI.section.allComparisons}</a>
+      <a href={routes.topic(sideA.id)} class="rounded-lg border border-ink-700 px-3 py-1.5 text-ink-300 hover:border-ink-500 hover:text-white">
+        {nameA} guides
+      </a>
+    </div>
+  </article>
+</BaseLayout>

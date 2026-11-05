@@ -1,0 +1,30 @@
+---
+/**
+ * B6b ErrorCause — one cause plus its numbered fix steps.
+ *
+ * Error pages reuse the same `step` schema as tutorials, so each fix renders
+ * with the identical H2-step / H3-substep / expected-result contract. One
+ * component, one visual language, one JSON-LD shape.
+ */
+import StepList from '@/components/content/StepList.astro';
+import { inlineHtml } from '@/lib/blocks';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  cause: CollectionEntry<'errors'>['data']['causes'][number];
+  index: number;
+  topic: string;
+  errorIndex?: Map<string, { slug: string; message: string; answer: string }>;
+}
+
+const { cause, index, topic, errorIndex } = Astro.props;
+---
+
+<section class="mt-10" id={`cause-${index}`}>
+  <h3 class="text-lg font-semibold text-ink-100">
+    <span class="font-mono text-sm text-accent/60" aria-hidden="true">Cause {index}</span>
+    <span set:html={inlineHtml(cause.title)} />
+  </h3>
+  <p class="mt-2 text-[0.9375rem] leading-relaxed text-ink-400" set:html={inlineHtml(cause.explain)} />
+  <StepList steps={cause.steps} topic={topic} errorIndex={errorIndex} />
+</section>

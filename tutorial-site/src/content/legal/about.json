@@ -1,0 +1,24 @@
+{
+  "slug": "about",
+  "title": "About",
+  "seo": {
+    "title": "About This Site",
+    "description": "How these tutorials are written, what the version numbers mean, and why every page states what was tested and when.",
+    "noindex": false
+  },
+  "updated": "2026-10-30",
+  "blocks": [
+    { "type": "p", "text": "This site publishes step-by-step technical tutorials. Every guide is written against a specific software version, states that version prominently, and includes a command you can run to confirm each step produced the expected result." },
+    { "type": "h2", "text": "How guides are produced" },
+    { "type": "p", "text": "Each guide is written by working through the task in a clean environment, starting from nothing. Steps are recorded as they are performed, not reconstructed afterwards from documentation. When a step fails, the failure is kept — it becomes an error entry with its own page." },
+    { "type": "p", "text": "The `Tested with` line on every page records the version and environment used. When a guide is re-verified against a newer release, that line is updated and the modification date changes. Guides that have not been re-verified carry their original date rather than a refreshed one." },
+    { "type": "h2", "text": "What the difficulty labels mean" },
+    { "type": "list", "items": [
+      "Beginner — assumes you can use a terminal and edit files, nothing more.",
+      "Intermediate — assumes familiarity with the tool's basic concepts and a working project.",
+      "Advanced — assumes you can debug build output and reason about data flow without guidance."
+    ]},
+    { "type": "h2", "text": "Corrections" },
+    { "type": "p", "text": "If a step no longer works on the version listed, that is a bug in the guide, not a problem with your setup. Error pages accept corrections the same way guides do: the fix is tested before the page is updated." }
+  ]
+}

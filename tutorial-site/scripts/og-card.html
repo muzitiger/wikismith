@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; }
+  body {
+    background: #08090c;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color: #e8ecf2;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Subtle grid, matches the site's technical register */
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 70% at 70% 20%, #000 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 70% 20%, #000 20%, transparent 75%);
+  }
+  .glow {
+    position: absolute; width: 760px; height: 760px; right: -220px; top: -300px;
+    background: radial-gradient(circle, rgba(125,211,252,0.16) 0%, transparent 62%);
+  }
+  .frame { position: absolute; inset: 0; padding: 72px 80px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 14px; font-size: 24px; letter-spacing: -0.01em; color: #aab4c4; }
+  .mark {
+    width: 40px; height: 40px; border-radius: 11px;
+    background: #7dd3fc; color: #08090c;
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 22px;
+  }
+  h1 {
+    margin-top: auto;
+    font-size: 78px; line-height: 1.04; letter-spacing: -0.035em; font-weight: 800;
+    max-width: 980px;
+  }
+  h1 .accent { color: #7dd3fc; }
+  .sub {
+    margin-top: 26px; font-size: 27px; line-height: 1.45; color: #8b96a8; max-width: 830px;
+  }
+  .rule { margin-top: 44px; height: 1px; background: rgba(255,255,255,0.09); }
+  .facts {
+    margin-top: 22px; display: flex; gap: 34px;
+    font-size: 19px; color: #6b7688; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .facts span { display: flex; align-items: center; gap: 9px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #7dd3fc; opacity: 0.75; }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="grid"></div>
+  <div class="frame">
+    <div class="brand"><span class="mark">T</span> Tutorial Index</div>
+    <h1>Step-by-step guides that tell you <span class="accent">what should happen</span></h1>
+    <p class="sub">Tested versions stated up front, a way to confirm every step, and a page for each error you will actually hit.</p>
+    <div class="rule"></div>
+    <div class="facts">
+      <span><i class="dot"></i>Version-pinned</span>
+      <span><i class="dot"></i>Expected result per step</span>
+      <span><i class="dot"></i>Error pages</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -23,6 +23,3 @@ pnpm-debug.log*
 
 # Local
 *.local
-
-# Unowned / unverified template draft, not part of this repo
-tutorial-site/

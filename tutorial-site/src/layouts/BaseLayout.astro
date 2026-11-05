@@ -1,0 +1,81 @@
+---
+/**
+ * Base layout. Owns <html>, <head>, skip link, header, footer.
+ * No page content is hardcoded here.
+ */
+import '@/styles/global.css';
+import Seo from '@/components/seo/Seo.astro';
+import JsonLd from '@/components/seo/JsonLd.astro';
+import SiteHeader from '@/components/layout/SiteHeader.astro';
+import SiteFooter from '@/components/layout/SiteFooter.astro';
+import type { JsonLdNode } from '@/lib/jsonld';
+import { UI } from '@/config/ui';
+import { getTopics } from '@/lib/content';
+import { SITE } from '@/config/site';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  noindex?: boolean;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  titleSuffix?: string;
+  jsonLd?: JsonLdNode[];
+  publishedTime?: Date;
+  modifiedTime?: Date;
+  /** Show the wide shell (index pages) instead of the prose shell. */
+  wide?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  noindex = false,
+  ogImage,
+  ogType = 'article',
+  titleSuffix,
+  jsonLd = [],
+  publishedTime,
+  modifiedTime,
+  wide = false,
+} = Astro.props;
+
+const topics = await getTopics();
+const navTopics = topics
+  .filter((t) => t.data.kind === 'primary' && t.data.status === 'live')
+  .map((t) => ({ slug: t.id, name: t.data.nameShort ?? t.data.name }));
+---
+
+<!doctype html>
+<html lang={SITE.locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <Seo
+      title={title}
+      description={description}
+      canonical={canonical}
+      noindex={noindex}
+      ogImage={ogImage}
+      ogType={ogType}
+      titleSuffix={titleSuffix}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+    />
+    <JsonLd nodes={jsonLd} />
+  </head>
+  <body class="min-h-dvh flex flex-col">
+    <a href="#main" class="skip-link">{UI.skipToContent}</a>
+    <SiteHeader topics={navTopics} />
+    <main id="main" class="flex-1">
+      <div class={wide ? 'shell py-10 md:py-14' : 'shell py-10 md:py-14'}>
+        <slot />
+      </div>
+    </main>
+    <SiteFooter topics={navTopics} />
+  </body>
+</html>

@@ -6,7 +6,8 @@ Built on **Astro 5 + Tailwind 4**, pure static SSG. The build output is plain HT
 
 ```
 wikismith/
-└── game-wiki/          ← game wiki template (working reference implementation)
+├── game-wiki/          ← game wiki / guide site
+└── tutorial-site/      ← how-to / tutorial site (multi-topic, 5 step templates)
 ```
 
 Each template is a complete Astro project with its own `package.json`. They do not share a workspace on purpose: you fork one, you get one, and upgrading a template never touches another.
@@ -18,6 +19,7 @@ Each template is a complete Astro project with its own `package.json`. They do n
 | Directory | Site type | Status |
 |---|---|---|
 | `game-wiki/` | Game wiki / guide site (`{game} codes`, `{game} walkthrough`, `{game} characters`) | Verified: 24 pages build clean, 15 automated checks pass |
+| `tutorial-site/` | How-to / tutorial site (`how to X`, `X tutorial`, `X vs Y`, `X not working`) | Verified: 43 pages build clean, 20 output checks + 4 purity checks pass |
 
 ---
 
@@ -229,9 +231,58 @@ Current state: **24 pages, 11/11 build checks, purity OK, 0 TypeScript errors.**
 
 ---
 
+## tutorial-site
+
+A multi-topic tutorial site. Where `game-wiki` is one game, this is many products:
+`/astro/`, `/nextjs/`, `/hugo/` each get their own hub, and the comparison pages sit
+at the root because "astro vs nextjs" belongs to neither side.
+
+### What it produces
+
+| Route | Purpose |
+|---|---|
+| `/` | All-topics hub |
+| `/{topic}/` | Topic hub — `primary` ships tutorials, `stub` exists only as a comparison referent |
+| `/{topic}/tutorials/` `/{topic}/tutorials/{slug}/` | Tutorial index and detail |
+| `/{topic}/errors/` `/{topic}/errors/{slug}/` | One error, one canonical URL |
+| `/{topic}/series/{slug}/` | Ordered learning path |
+| `/{topic}/tags/` `/{topic}/tags/{tag}/` | Tag index and detail |
+| `/vs/` `/vs/{a}-vs-{b}/` | Cross-topic comparisons, at the root |
+| `/legal/{slug}/` | About, privacy |
+
+### The five step templates
+
+`template` on a tutorial picks the block order. All five share one route file — the
+step rendering is identical, and five near-identical files drift.
+
+| `template` | For | Structured data |
+|---|---|---|
+| `howto` | "how to X in Y" | HowTo + FAQPage + BreadcrumbList |
+| `pillar` | "{topic} {feature} tutorial" | TechArticle + ItemList |
+| `getting-started` | "{topic} for beginners" | HowTo + FAQPage |
+| `checklist` | "{topic} best practices" | TechArticle + FAQPage |
+| `migration` | "migrate from X to Y" | HowTo + FAQPage |
+
+### What makes it different from a blog theme
+
+- **Every step states an expected result.** That block is not a `HowToStep` — folding
+  it in shifts every `position` and breaks the rich result.
+- **Prerequisites are not steps.** They become `HowTo.tool` / `HowTo.supply`.
+- **Steps are `<h2>Step 2 — Title`, sub-actions are `<h3>`.** Heading order and
+  `HowToStep.position` are the same list, so they cannot disagree.
+- **Errors are a collection, not a section.** One error page per message, referenced
+  by `errorIds` from every tutorial it appears in. No duplicated cause-and-fix text.
+- **`npm run build` refuses to ship** on a broken canonical, an invalid `HowToStep`, a
+  dead internal link, a missing og:image, or a sentence hardcoded in a component.
+
+Full details: [`tutorial-site/README.md`](tutorial-site/README.md), design rationale
+in [`tutorial-site/DESIGN.md`](tutorial-site/DESIGN.md).
+
+---
+
 ## Known limitations
 
 - **Single-game by design.** `getGame()` throws if `src/content/game/` holds more than one entry. Two games means two sites.
 - **No search.** Pagefind would be the fit for a large site; this template deliberately ships none.
 - **No i18n.** `SITE.locale` exists for `<html lang>` and `og:locale`, but routes are not localized. Adding locales means a `[locale]/` segment and an `availableLocales` field — a structural change, not a config flip.
-- **`tutorial-site/` is not part of this repository.** A separate tutorial-site template exists in some working copies; it has an unrelated schema and is not verified here.
+- **Each template stands alone.** `game-wiki/` and `tutorial-site/` share no code, no workspace and no schema. Fixes are ported by hand, on purpose.

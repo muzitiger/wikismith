@@ -1,0 +1,248 @@
+---
+/**
+ * ERROR DETAIL — /{topic}/errors/{slug}/
+ *
+ * One canonical page per error. Structure is rigid on purpose: someone landing
+ * here is blocked and wants the fix in the first three seconds, not a narrative.
+ *
+ * Block order:
+ *   breadcrumb → h1 → answer → meta → symptom → causes (each with steps)
+ *   → verification → prevention → still broken → referenced-in → faq
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import AnswerBox from '@/components/content/AnswerBox.astro';
+import ErrorCause from '@/components/content/ErrorCause.astro';
+import FaqList from '@/components/content/FaqList.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import {
+  getErrors,
+  getErrorsByTopic,
+  getTopics,
+  getTutorialsByTopic,
+  requireTopic,
+  resolveErrors,
+  type ErrorDoc,
+} from '@/lib/content';
+import { errorPageNodes, type Crumb } from '@/lib/jsonld';
+import { inlineHtml } from '@/lib/blocks';
+
+export async function getStaticPaths() {
+  const topics = await getTopics();
+  const primary = new Set(topics.filter((t) => t.data.kind === 'primary').map((t) => t.id));
+  const errors = await getErrors();
+  return errors
+    .filter((e) => primary.has(e.data.topic))
+    .map((e) => ({
+      params: { topic: e.data.topic, slug: e.id },
+      props: { errorDoc: e },
+    }));
+}
+
+interface Props {
+  errorDoc: ErrorDoc;
+}
+
+const { errorDoc } = Astro.props;
+const d = errorDoc.data;
+const topicSlug = d.topic;
+const topic = await requireTopic(topicSlug);
+const topicName = topic.data.nameShort ?? topic.data.name;
+const path = routes.error(topicSlug, errorDoc.id);
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+
+/* Reverse links: tutorials that mention this error. */
+const tutorials = await getTutorialsByTopic(topicSlug);
+const referencing = tutorials.filter(
+  (t) => t.data.errorIds.includes(errorDoc.id) || t.data.steps.some((s) => s.errorIds.includes(errorDoc.id))
+);
+
+/* Triage chain. */
+const seeAlso = await resolveErrors(topicSlug, d.seeAlsoIds);
+
+/* Error lookup for step-level links inside causes. */
+const allErrors = await getErrorsByTopic(topicSlug);
+const errorIndex = new Map(
+  allErrors.map((e) => [e.id, { slug: e.id, message: e.data.message, answer: e.data.answer }])
+);
+
+const crumbs: Crumb[] = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: topicName, path: routes.topic(topicSlug) },
+  { name: UI.section.errors, path: routes.errors(topicSlug) },
+  { name: d.h1, path },
+];
+
+const jsonLd = errorPageNodes({ origin }, errorDoc, path, crumbs);
+
+const fmt = (dt: Date) =>
+  dt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+---
+
+<BaseLayout
+  title={d.seo.title}
+  description={d.seo.description}
+  canonical={d.seo.canonical}
+  noindex={d.seo.noindex || topic.data.status === 'draft'}
+  ogImage={d.seo.ogImage}
+  titleSuffix={topicName}
+  jsonLd={jsonLd}
+  publishedTime={d.published}
+  modifiedTime={d.updated}
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <article class="max-w-3xl min-w-0">
+    <header>
+      <p class="text-xs font-medium uppercase tracking-wider text-danger/70">
+        {UI.errorCategory[d.category] ?? d.category}
+      </p>
+      <h1 class="mt-2 text-3xl font-bold leading-tight tracking-tight text-white md:text-[2.25rem] md:leading-[1.2]">
+        {d.h1}
+      </h1>
+
+      <div class="mt-5 overflow-x-auto rounded-lg border border-danger/25 bg-danger/[0.04] px-4 py-3">
+        <p class="text-[0.6875rem] font-semibold uppercase tracking-wider text-danger/70">Error</p>
+        <code class="mt-1 block whitespace-pre-wrap break-words font-mono text-[0.8125rem] leading-relaxed text-ink-200">
+          {d.message}
+        </code>
+        {d.code && (
+          <p class="mt-1.5 font-mono text-[0.6875rem] text-ink-500">code: {d.code}</p>
+        )}
+      </div>
+
+      <div class="mt-5">
+        <AnswerBox answer={d.answer} label={UI.section.answer} />
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-500">
+        {d.affected.versions && (
+          <span class="font-mono">Affects {d.affected.versions}</span>
+        )}
+        {d.affected.platforms.length > 0 && <span>{d.affected.platforms.join(', ')}</span>}
+        <span>
+          {UI.meta.updated}{' '}
+          <time datetime={d.updated.toISOString().slice(0, 10)}>{fmt(d.updated)}</time>
+        </span>
+      </div>
+    </header>
+
+    <!-- Symptom -->
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold text-ink-100">What it looks like</h2>
+      <p class="mt-3 text-[0.9375rem] leading-relaxed text-ink-400" set:html={inlineHtml(d.symptom)} />
+    </section>
+
+    <!-- Causes -->
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-ink-100">{UI.section.causes}</h2>
+      <p class="mt-2 text-sm text-ink-500">
+        {d.causes.length === 1
+          ? 'One cause, and one fix.'
+          : `${d.causes.length} possible causes. Start with the first — it is the most common.`}
+      </p>
+      {
+        d.causes.map((cause, i) => (
+          <ErrorCause cause={cause} index={i + 1} topic={topicSlug} errorIndex={errorIndex} />
+        ))
+      }
+    </section>
+
+    <!-- Verification -->
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-ink-100">{UI.section.verify}</h2>
+      <div class="mt-4 rounded-lg border border-ok/25 bg-ok/[0.04] px-4 py-3">
+        <code class="block break-all font-mono text-xs text-accent">$ {d.verification.cmd}</code>
+        <p class="mt-1.5 font-mono text-xs text-ink-400">
+          <span class="text-ink-500">&rarr;</span> {d.verification.expect}
+        </p>
+      </div>
+    </section>
+
+    <!-- Prevention -->
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-ink-100">{UI.section.prevention}</h2>
+      <ul class="mt-4 space-y-2">
+        {
+          d.prevention.map((p) => (
+            <li class="flex gap-2.5 text-sm leading-relaxed text-ink-400">
+              <span class="mt-1.5 size-1 shrink-0 rounded-full bg-ok/60" aria-hidden="true" />
+              <span set:html={inlineHtml(p)} />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- Triage chain -->
+    {
+      seeAlso.length > 0 && (
+        <section class="mt-12">
+          <h2 class="text-xl font-semibold text-ink-100">{UI.section.stillBroken}</h2>
+          <p class="mt-2 text-sm text-ink-500">
+            If none of the fixes above worked, you are probably looking at a different error.
+          </p>
+          <ul class="mt-4 divide-y divide-ink-800 rounded-lg border border-ink-800">
+            {seeAlso.map((e) => (
+              <li>
+                <a
+                  href={routes.error(topicSlug, e.id)}
+                  class="group flex flex-col gap-1 px-4 py-3.5 transition-colors hover:bg-ink-900/60"
+                >
+                  <code class="font-mono text-[0.8125rem] text-ink-200 group-hover:text-white">
+                    {e.data.message}
+                  </code>
+                  <span class="text-sm text-ink-500" set:html={inlineHtml(e.data.answer)} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <!-- Reverse links -->
+    {
+      referencing.length > 0 && (
+        <section class="mt-12">
+          <h2 class="text-xl font-semibold text-ink-100">{UI.section.referencedIn}</h2>
+          <p class="mt-2 text-sm text-ink-500">
+            This error appears as a known failure point in {referencing.length}{' '}
+            {referencing.length === 1 ? 'guide' : 'guides'}.
+          </p>
+          <ul class="mt-4 space-y-2">
+            {referencing.map((t) => (
+              <li>
+                <a
+                  href={routes.tutorial(topicSlug, t.id)}
+                  class="group flex items-baseline gap-2 text-sm text-ink-300 hover:text-accent"
+                >
+                  <span class="text-ink-600" aria-hidden="true">&rarr;</span>
+                  <span>{t.data.h1}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <!-- FAQ -->
+    {
+      d.faq.length > 0 && (
+        <section class="mt-12">
+          <h2 class="text-xl font-semibold text-ink-100">{UI.section.faq}</h2>
+          <FaqList faq={d.faq} />
+        </section>
+      )
+    }
+
+    <div class="mt-14 border-t border-ink-800 pt-6">
+      <a href={routes.errors(topicSlug)} class="text-sm text-accent hover:underline">
+        &larr; {UI.section.allErrors}
+      </a>
+    </div>
+  </article>
+</BaseLayout>

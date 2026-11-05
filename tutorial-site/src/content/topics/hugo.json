@@ -1,0 +1,34 @@
+{
+  "slug": "hugo",
+  "name": "Hugo",
+  "nameShort": "Hugo",
+  "tagline": "The Go-powered static site generator built for build speed",
+  "seo": {
+    "title": "Hugo: Overview, Strengths, and Trade-offs",
+    "description": "What Hugo is, why its build times are still unmatched, and where its template language becomes the limiting factor on larger projects."
+  },
+  "kind": "stub",
+  "status": "live",
+  "intro": "Hugo is a static site generator written in Go, distributed as a single binary with no runtime dependencies. Its defining characteristic is build speed: sites with tens of thousands of pages rebuild in under a second, because it parallelizes across all available cores and caches aggressively between runs. Content lives in Markdown with frontmatter, and structure comes from a directory convention rather than configuration.\n\nTemplates are written in Go's html/template syntax plus a set of Hugo-specific functions. That language is fast and predictable, but it is not a general-purpose programming language, and complex conditional layouts tend to turn into nested with and if blocks that are hard to refactor. Hugo has no component model and no client-side interactivity story; if you need a dropdown that updates state, you are adding a separate script by hand. This is a reference entry used by the comparison pages.",
+  "category": "Static site generator",
+  "currentVersion": "0.152",
+  "officialUrl": "https://gohugo.io",
+  "docsUrl": "https://gohugo.io/documentation/",
+  "color": "#ff4088",
+  "features": [
+    {
+      "id": "templating",
+      "label": "Go Templates"
+    },
+    {
+      "id": "taxonomies",
+      "label": "Taxonomies"
+    }
+  ],
+  "rivalIds": [
+    "astro",
+    "eleventy"
+  ],
+  "faq": [],
+  "updated": "2026-11-01"
+}

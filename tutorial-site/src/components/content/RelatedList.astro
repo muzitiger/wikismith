@@ -1,0 +1,41 @@
+---
+/**
+ * B8 RelatedList — internal links out of a detail page.
+ *
+ * Items come pre-resolved from `resolveRelated()`, never computed in the
+ * component: the precedence rules (manual → siblings → series → tags) live in
+ * lib/content.ts so every page links the same way.
+ *
+ * Anchor text is the target's H1 with the "How to" prefix trimmed. Repeating one
+ * exact-match anchor across the whole site is the loudest over-optimization
+ * signal there is.
+ */
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+
+interface Props {
+  items: Array<{ slug: string; title: string; excerpt: string; template: string }>;
+  topic: string;
+}
+
+const { items, topic } = Astro.props;
+
+const shortTitle = (t: string) =>
+  t.replace(/^How to /, '').replace(/\s*\([^)]*\)\s*$/, '').replace(/\s*[:—|].*$/, '');
+---
+
+{items.length > 0 && (
+  <nav class="mt-4 grid gap-3 sm:grid-cols-2" aria-label={UI.section.related} data-block="related">
+    {items.map((item) => (
+      <a
+        href={routes.tutorial(topic, item.slug)}
+        class="group flex flex-col gap-1.5 rounded-lg border border-ink-800 bg-ink-900/40 px-4 py-3.5 transition-colors hover:border-ink-600 hover:bg-ink-900"
+      >
+        <span class="text-sm font-medium leading-snug text-ink-200 group-hover:text-white">
+          {shortTitle(item.title)}
+        </span>
+        <span class="line-clamp-2 text-xs leading-relaxed text-ink-500">{item.excerpt}</span>
+      </a>
+    ))}
+  </nav>
+)}

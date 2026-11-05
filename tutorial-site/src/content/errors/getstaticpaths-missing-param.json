@@ -1,0 +1,175 @@
+{
+  "slug": "getstaticpaths-missing-param",
+  "topic": "astro",
+  "seo": {
+    "title": "Astro: getStaticPaths Missing Param for Dynamic Route",
+    "description": "Astro fails with a missing param error when getStaticPaths does not return every bracketed segment. The fix, plus why a typo in the export name is worse."
+  },
+  "h1": "getStaticPaths Missing a Required Param: What Astro Expects",
+  "message": "Missing parameter: slug. Expected getStaticPaths to return ...",
+  "answer": "Your getStaticPaths returns an object whose params lacks a key matching every bracketed segment in the filename. Add the missing key, using the exact bracket name.",
+  "symptom": "Build stops with an error naming the route file and a parameter such as slug, stating that getStaticPaths did not provide it. The route file may look correct, and the pages may have rendered in dev before the build failed.",
+  "category": "build",
+  "affected": {
+    "versions": ">=3.0.0",
+    "platforms": [
+      "all"
+    ]
+  },
+  "causes": [
+    {
+      "title": "The params key does not match the bracket name",
+      "explain": "Astro keys params by bracket name literally. A file named `[slug].astro` requires `params.slug`. Returning `params.id` or `params.name` leaves `slug` undefined, and the error names `slug` — which makes it look like you returned nothing at all.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Read the bracket name from the filename",
+          "body": [
+            {
+              "type": "p",
+              "text": "Look at the actual filename, not your memory of it. Copy the text between the brackets."
+            },
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "ls src/pages/blog/*.astro\n# src/pages/blog/[slug].astro  ->  the key must be exactly 'slug'"
+            }
+          ],
+          "expected": "You have the exact parameter name the route requires.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Make the key match",
+          "body": [
+            {
+              "type": "p",
+              "text": "Rename the key in the returned object. If several routes share the helper that builds params, fix it there — otherwise the next route hits the same error."
+            }
+          ],
+          "expected": "Every returned object has a params key matching the bracket name.",
+          "minutes": 2
+        },
+        {
+          "n": 3,
+          "title": "Rebuild and confirm",
+          "body": [
+            {
+              "type": "p",
+              "text": "Rebuild and confirm the page count matches your entry count. A build that now succeeds with zero pages means getStaticPaths returned an empty array — a different problem."
+            }
+          ],
+          "expected": "The build generates one page per returned entry.",
+          "verify": {
+            "cmd": "npx astro build",
+            "expect": "Complete!"
+          },
+          "minutes": 2
+        }
+      ]
+    },
+    {
+      "title": "getStaticPaths is not exported",
+      "explain": "The function is only detected when exported by name. Defining it as a local function, or exporting it as the default, produces this same error because Astro sees no paths at all for the route.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the export keyword",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "grep -n 'getStaticPaths' src/pages/blog/\\[slug\\].astro"
+            }
+          ],
+          "expected": "The line reads `export async function getStaticPaths(` or `export const getStaticPaths`.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Add the export",
+          "body": [
+            {
+              "type": "p",
+              "text": "Add `export` in front of the declaration. Nothing else changes — the body and return shape stay the same."
+            }
+          ],
+          "expected": "The function is a named export from the component frontmatter.",
+          "minutes": 1
+        }
+      ]
+    },
+    {
+      "title": "The route is on-demand but has no adapter",
+      "explain": "With `output: 'server'`, a dynamic route renders per request and getStaticPaths is not used. If the config says static output but the adapter is missing, Astro tries to prerender and expects getStaticPaths that does not exist.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check the output mode",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "grep -n \"output\" astro.config.mjs"
+            }
+          ],
+          "expected": "You know whether the project is static or server output.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Either add an adapter or add getStaticPaths",
+          "body": [
+            {
+              "type": "p",
+              "text": "Server output needs an adapter matching your host. Static output needs getStaticPaths on every dynamic route. Pick one deliberately — mixing them silently is how you end up debugging a build that has no pages."
+            }
+          ],
+          "expected": "The output mode and the route's expectations agree.",
+          "minutes": 3
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "cmd": "npx astro build",
+    "expect": "One generated directory per entry returned by getStaticPaths"
+  },
+  "prevention": [
+    "Name the params key by copying the bracket text from the filename rather than typing it from memory.",
+    "Assert that getStaticPaths returns a non-empty array if the route should always have pages — a silent zero is the harder failure to notice.",
+    "Keep the export named exactly getStaticPaths; there is no aliasing."
+  ],
+  "seeAlsoIds": [
+    "getcollection-returns-empty-array",
+    "post-render-not-a-function"
+  ],
+  "faq": [
+    {
+      "q": "Can getStaticPaths be async?",
+      "a": "Yes, and it usually should be, since it often queries a collection or an API. Astro awaits it before generating pages."
+    },
+    {
+      "q": "Why did this work in dev but fail in build?",
+      "a": "In dev the route is evaluated on request against the URL you typed, so params come from the URL. In build, all pages are enumerated up front from getStaticPaths, which is where the missing key actually matters."
+    },
+    {
+      "q": "Does every bracketed segment need its own key?",
+      "a": "Yes. A file named `[lang]/[slug].astro` requires both `params.lang` and `params.slug` on every returned object, even if one of them is always the same value."
+    },
+    {
+      "q": "Do I need getStaticPaths if I only have one dynamic page?",
+      "a": "Yes, in static output. Even a single URL has to be declared, because Astro generates a fixed set of files at build time and needs to know which paths exist. There is no directory scan that could infer it from your data."
+    },
+    {
+      "q": "What happens if two getStaticPaths entries share a param value?",
+      "a": "The duplicate silently overwrites the earlier page, so you end up with fewer output files than entries returned. It is worth asserting uniqueness on the param value when it derives from user data rather than from filenames that are already unique on disk."
+    }
+  ],
+  "tags": [
+    "routing",
+    "build-errors"
+  ],
+  "published": "2026-03-14",
+  "updated": "2026-10-22"
+}

@@ -1,0 +1,319 @@
+{
+  "slug": "getting-started-with-astro",
+  "topic": "astro",
+  "template": "getting-started",
+  "seo": {
+    "title": "Getting Started with Astro: Zero to Deployed in 15 Minutes",
+    "description": "Install Astro, create your first project, understand the one file that matters, and deploy it. A shortest-path introduction for developers new to Astro."
+  },
+  "h1": "Getting Started with Astro: From Zero to Deployed",
+  "answer": "Run npm create astro@latest, pick the minimal template, and start the dev server. You will have a working site in under two minutes; the rest of this guide explains the one file you need to understand to change it.",
+  "excerpt": "The shortest path from an empty folder to a deployed Astro site, with an explanation of the frontmatter fence that makes Astro click.",
+  "primaryKeyword": "getting started with astro",
+  "secondaryKeywords": [
+    "astro for beginners",
+    "astro tutorial for beginners",
+    "learn astro from scratch",
+    "create astro project"
+  ],
+  "difficulty": "beginner",
+  "totalMinutes": 15,
+  "testedWith": {
+    "version": "5.18.2",
+    "date": "2026-10-30",
+    "environment": "macOS 15.6 / Node 22.11"
+  },
+  "prerequisites": [
+    {
+      "text": "Node.js 18.17 or newer",
+      "kind": "tool",
+      "version": ">=18.17",
+      "required": true,
+      "verify": {
+        "cmd": "node --version",
+        "expect": "v20.x or v22.x"
+      }
+    },
+    {
+      "text": "A terminal and a code editor",
+      "kind": "tool",
+      "required": true
+    },
+    {
+      "text": "Comfort with HTML tags",
+      "kind": "knowledge",
+      "required": true
+    },
+    {
+      "text": "No prior React, Vue, or Svelte experience needed",
+      "kind": "knowledge",
+      "required": false
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "title": "Create the project",
+      "subSteps": [
+        {
+          "title": "Use the create command, not a manual install",
+          "text": "The scaffolder sets up the config, TypeScript, and git in one pass. Doing it by hand takes ten minutes and gets the tsconfig subtly wrong."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "The scaffolder asks four questions. Pick the minimal template, say yes to dependencies, yes to git, and yes to TypeScript."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "code": "npm create astro@latest my-site\n# How would you like to start?      → A basic, minimal starter\n# Install dependencies?             → Yes\n# Initialize a git repository?      → Yes\n# TypeScript?                       → Yes (strict)"
+        },
+        {
+          "type": "p",
+          "text": "Choose strict TypeScript even if you have never used it. Astro's benefits are mostly compile-time — content schemas and prop types — and lenient settings turn those checks off. The template's code compiles under strict, so you are not signing up for type gymnastics on day one."
+        }
+      ],
+      "expected": "A new my-site directory exists containing astro.config.mjs, package.json, and a src folder.",
+      "verify": {
+        "cmd": "ls my-site/src/pages",
+        "expect": "index.astro"
+      },
+      "minutes": 4,
+      "errorIds": []
+    },
+    {
+      "n": 2,
+      "title": "Start the dev server and open the page",
+      "subSteps": [
+        {
+          "title": "Dev runs on demand, not from a build",
+          "text": "There is no bundle step for the page itself; Astro compiles the route when you request it."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "From inside the project directory, start the dev server. It prints a local URL, usually port 4321."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "code": "cd my-site\nnpm run dev\n# ➜  Local  http://localhost:4321/"
+        },
+        {
+          "type": "p",
+          "text": "Open that URL. You should see the starter page. Edit `src/pages/index.astro`, change some text, and save — the browser updates without a reload of the whole page, because only the changed module is replaced."
+        }
+      ],
+      "expected": "The starter page loads at localhost:4321 and reflects edits without a full refresh.",
+      "verify": {
+        "cmd": "curl -sI http://localhost:4321/ | head -1",
+        "expect": "HTTP/1.1 200 OK"
+      },
+      "minutes": 3,
+      "errorIds": []
+    },
+    {
+      "n": 3,
+      "title": "Understand the file that makes Astro click",
+      "subSteps": [
+        {
+          "title": "Everything above the fence runs at build time",
+          "text": "That fence is the entire mental model. Code inside it runs in Node during the build, and its output is HTML."
+        },
+        {
+          "title": "console.log goes to your terminal, not the browser",
+          "text": "This is the single most common beginner confusion, and it is not a bug."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Open `src/pages/index.astro`. It has three parts: a frontmatter fence, the template, and optionally a style block. The fence is where the framework's entire behaviour lives."
+        },
+        {
+          "type": "code",
+          "lang": "astro",
+          "filename": "src/pages/index.astro",
+          "code": "---\n// Runs once, at build time, in Node.\nconst name = 'world';\nconsole.log(name);          // appears in your TERMINAL\nconst items = ['a', 'b'];\n---\n\n<h1>Hello {name}</h1>\n<ul>\n  {items.map((item) => <li>{item}</li>)}\n</ul>\n\n<style>\n  h1 { color: tomato; }\n</style>\n"
+        },
+        {
+          "type": "p",
+          "text": "By the time this page reaches a browser, `name` and `items` no longer exist. They were evaluated during the build and replaced with their values. The browser receives static HTML with no JavaScript attached — open devtools and check the network panel; there is no script for this page at all.\n\nThat is the idea Astro is built around, and it is why a content page built here ships kilobytes instead of hundreds of kilobytes."
+        },
+        {
+          "type": "note",
+          "tone": "info",
+          "text": "The style block is scoped to this component automatically. You do not pick class names carefully to avoid collisions — Astro hashes them for you."
+        }
+      ],
+      "expected": "You can explain why a console.log in frontmatter prints to the terminal rather than the browser console.",
+      "minutes": 5,
+      "errorIds": []
+    },
+    {
+      "n": 4,
+      "title": "Add a second page and a link",
+      "subSteps": [
+        {
+          "title": "Files become routes",
+          "text": "Creating src/pages/about.astro makes /about/ available. No router config."
+        },
+        {
+          "title": "Use plain anchors",
+          "text": "There is no Link component. Navigation is a full page load by default."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Create `src/pages/about.astro` with any content, then link to it from the index page with an ordinary `<a>` tag."
+        },
+        {
+          "type": "code",
+          "lang": "astro",
+          "filename": "src/pages/about.astro",
+          "code": "---\nconst title = 'About';\n---\n\n<h1>{title}</h1>\n<p>Built with Astro.</p>\n<p><a href=\"/\">Back home</a></p>\n"
+        },
+        {
+          "type": "p",
+          "text": "The absence of a router import is not an oversight. Astro deliberately ships no client-side router by default, because for a content site a full page load is fast enough and costs nothing. If you want animated transitions between pages, that is an opt-in with the view transitions API, not a default."
+        }
+      ],
+      "expected": "Visiting /about/ renders the new page and the link from the homepage navigates to it.",
+      "minutes": 3,
+      "errorIds": []
+    },
+    {
+      "n": 5,
+      "title": "Build and deploy",
+      "subSteps": [
+        {
+          "title": "A build writes plain files",
+          "text": "The output is a dist directory of HTML, CSS and assets. Any static host serves it."
+        },
+        {
+          "title": "Set site before deploying",
+          "text": "Canonical URLs and sitemaps depend on it, and it cannot be inferred."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Run the build and look at the output. Everything in `dist` is a static file — no server code, no runtime."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "code": "npm run build\nls dist\n# index.html  about/index.html  _astro/"
+        },
+        {
+          "type": "p",
+          "text": "Before deploying, set `site` in `astro.config.mjs` to your production origin. This is the field that canonical tags and the sitemap integration read, and leaving it out produces a site that works but has no canonical URLs."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "filename": "astro.config.mjs",
+          "code": "export default defineConfig({\n  site: 'https://your-domain.com',\n});"
+        },
+        {
+          "type": "p",
+          "text": "Then deploy the `dist` folder to any static host — Cloudflare Pages, Netlify, Vercel, or an S3 bucket. There is nothing to configure beyond the build command and the output directory."
+        }
+      ],
+      "expected": "dist contains HTML files, and the deployed site serves the homepage at the production URL.",
+      "verify": {
+        "cmd": "npm run build",
+        "expect": "Complete!"
+      },
+      "minutes": 5,
+      "errorIds": [
+        "sitemap-not-generated"
+      ]
+    }
+  ],
+  "body": [
+    {
+      "type": "h2",
+      "text": "What to learn next, in order"
+    },
+    {
+      "type": "p",
+      "text": "The framework is small, but the order matters. Learning islands before understanding the build-time model produces confusion about why state disappears; learning routing before content collections produces a blog that re-fetches data it already had at build time.\n\nThe sequence that works: understand the fence, then file-based routing, then content collections, then islands. Only after those four do the integrations and deployment targets make sense as anything other than configuration."
+    },
+    {
+      "type": "list",
+      "ordered": true,
+      "items": [
+        "File-based routing — how filenames become URLs, including dynamic segments.",
+        "Content collections — typed Markdown and JSON, validated at build.",
+        "Islands — adding interactivity to exactly the parts that need it.",
+        "Layouts and slots — the composition model shared across pages.",
+        "Integrations — sitemap, images, and whatever else the project needs."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "The one mistake almost everyone makes first"
+    },
+    {
+      "type": "p",
+      "text": "Trying to make the page interactive without an island. You write an event handler in the template, it silently does nothing, and there is no error to explain why.\n\nThe reason is consistent with everything above: event handlers are JavaScript, and JavaScript does not run unless a component is hydrated. In a `.astro` file, `onclick` is an attribute that gets rendered as a string, not a listener. To get a listener you either write a `<script>` tag — which runs in the browser, plain and simple — or reach for a framework component with a client directive."
+    },
+    {
+      "type": "code",
+      "lang": "astro",
+      "code": "<!-- Does nothing: onclick is just an attribute on static HTML -->\n<button onclick=\"alert('hi')\">Nope</button>\n\n<!-- Works: a script tag ships and runs in the browser -->\n<button id=\"go\">Click</button>\n<script>\n  document.getElementById('go').addEventListener('click', () => alert('hi'));\n</script>\n"
+    },
+    {
+      "type": "h2",
+      "text": "Do you need a UI framework?"
+    },
+    {
+      "type": "p",
+      "text": "For a content site, usually no. The `<script>` tag covers small interactions and costs nothing at the framework level. A UI framework earns its place when you have state that multiple components share and update — a form with live validation across fields, a filterable table, a cart.\n\nChoosing one is not a one-way door. The integration is additive: you can add React for a single island later without converting any existing `.astro` file."
+    }
+  ],
+  "errorIds": [
+    "sitemap-not-generated"
+  ],
+  "faq": [
+    {
+      "q": "Do I need to know React to start?",
+      "a": "No. Astro components use JSX-like expressions inside HTML, which is a small surface to learn. React only enters the picture if you decide to add an interactive island with React specifically."
+    },
+    {
+      "q": "Why is there no JavaScript in my page's network panel?",
+      "a": "Because the page has no islands. Astro ships zero client JavaScript by default, so a static page is pure HTML and CSS. That is the intended result, not a broken build."
+    },
+    {
+      "q": "Can I use TypeScript in .astro files?",
+      "a": "Yes, in the frontmatter. The template section is HTML with expressions, so it is not type-checked the way a .tsx file is, but frontmatter code and prop interfaces are fully typed."
+    },
+    {
+      "q": "Where do I put images and static files?",
+      "a": "Files in public/ are copied to the output as-is and referenced by absolute path. Images imported from src/ go through the asset pipeline and get optimized, which is what you want for anything content-related."
+    },
+    {
+      "q": "How do I add a blog?",
+      "a": "Content collections. Define a collection pointing at a folder of Markdown files, add a schema, then create a dynamic route that generates one page per entry. The content collections tutorial walks through it end to end."
+    }
+  ],
+  "seriesId": "astro-fundamentals",
+  "order": 1,
+  "relatedIds": [
+    "content-collections-tutorial",
+    "create-dynamic-routes",
+    "add-a-sitemap"
+  ],
+  "tags": [
+    "beginner",
+    "setup",
+    "routing"
+  ],
+  "published": "2026-01-20",
+  "updated": "2026-10-30"
+}

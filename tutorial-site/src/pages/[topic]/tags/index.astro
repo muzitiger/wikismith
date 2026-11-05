@@ -1,0 +1,81 @@
+---
+/**
+ * TAGS INDEX — /{topic}/tags/
+ *
+ * Tag pages are scoped per topic, not site-wide: "routing" means something
+ * different in each topic, and a global aggregation would be a thin page of
+ * unrelated items.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import { getTopics, getTopicTagCounts } from '@/lib/content';
+import { breadcrumbNode, collectionPageNode } from '@/lib/jsonld';
+
+export async function getStaticPaths() {
+  const topics = await getTopics();
+  return topics
+    .filter((t) => t.data.kind === 'primary')
+    .map((t) => ({ params: { topic: t.id }, props: { topic: t } }));
+}
+
+const { topic } = Astro.props;
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+const topicName = topic.data.nameShort ?? topic.data.name;
+const path = routes.tags(topic.id);
+
+const counts = await getTopicTagCounts(topic.id);
+
+const crumbs = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: topicName, path: routes.topic(topic.id) },
+  { name: 'Tags', path },
+];
+
+const jsonLd = [
+  breadcrumbNode({ origin }, crumbs),
+  collectionPageNode({ origin }, {
+    name: `${topicName} topics`,
+    description: `Every tag used across ${topicName} guides and error pages, with counts.`,
+    path,
+    updated: topic.data.updated,
+  }),
+];
+---
+
+<BaseLayout
+  title={`${topicName} Topics and Tags`}
+  description={`Every tag used across ${topicName} guides and error pages, ordered by how much content carries it.`}
+  canonical={path}
+  noindex={topic.data.status === 'draft'}
+  titleSuffix={topicName}
+  jsonLd={jsonLd}
+  ogType="website"
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <header class="max-w-2xl">
+    <h1 class="text-3xl font-bold tracking-tight text-white md:text-4xl">{topicName} Topics</h1>
+    <p class="mt-4 text-base leading-relaxed text-ink-400">
+      Every tag in use across the guides and error pages, ordered by how much content carries it.
+    </p>
+  </header>
+
+  <div class="mt-10 flex flex-wrap gap-2">
+    {
+      counts.map((c) => (
+        <a
+          href={routes.tag(topic.id, c.slug)}
+          class="inline-flex items-center gap-2 rounded-lg border border-ink-800 bg-ink-900/50 px-3.5 py-2 text-sm text-ink-300 transition-colors hover:border-ink-600 hover:text-white"
+        >
+          <span>{c.slug}</span>
+          <span class="font-mono text-[0.625rem] text-ink-600">{c.count}</span>
+        </a>
+      ))
+    }
+  </div>
+
+  {counts.length === 0 && <p class="mt-10 text-sm text-ink-500">No tags in use yet.</p>}
+</BaseLayout>

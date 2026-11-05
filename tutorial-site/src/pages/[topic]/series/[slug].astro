@@ -1,0 +1,117 @@
+---
+/**
+ * SERIES DETAIL — /{topic}/series/{slug}/
+ *
+ * The whole point of a series is sequence, so the list is numbered and each
+ * item shows what it assumes from the previous one. A flat list of links
+ * communicates nothing about order.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import { getSeriesList, requireTopic, resolveSeriesItems } from '@/lib/content';
+import { seriesPageNodes, type Crumb } from '@/lib/jsonld';
+import RichText from '@/components/content/RichText.astro';
+
+export async function getStaticPaths() {
+  const all = await getSeriesList();
+  return all.map((s) => ({
+    params: { topic: s.data.topic, slug: s.id },
+    props: { series: s },
+  }));
+}
+
+const { series } = Astro.props;
+const s = series.data;
+const topic = await requireTopic(s.topic);
+const topicName = topic.data.nameShort ?? topic.data.name;
+const path = routes.series(s.topic, series.id);
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+
+const items = await resolveSeriesItems(series);
+
+const crumbs: Crumb[] = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: topicName, path: routes.topic(s.topic) },
+  { name: s.h1, path },
+];
+
+const jsonLd = seriesPageNodes(
+  { origin },
+  series,
+  path,
+  crumbs,
+  items.map((t) => ({ name: t.data.h1, path: routes.tutorial(s.topic, t.id) }))
+);
+
+const totalMinutes = items.reduce((sum, t) => sum + (t.data.totalMinutes ?? 0), 0);
+---
+
+<BaseLayout
+  title={s.seo.title}
+  description={s.seo.description}
+  canonical={s.seo.canonical}
+  noindex={s.seo.noindex || topic.data.status === 'draft'}
+  ogImage={s.seo.ogImage}
+  titleSuffix={topicName}
+  jsonLd={jsonLd}
+  ogType="website"
+  modifiedTime={s.updated}
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <header class="max-w-2xl">
+    <p class="text-xs font-medium uppercase tracking-wider text-accent/70">Learning path</p>
+    <h1 class="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">{s.h1}</h1>
+    <RichText as="p" class="mt-4 text-base leading-relaxed text-ink-400" text={s.intro} />
+
+    <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 font-mono text-xs text-ink-500">
+      <span>{items.length} parts</span>
+      {totalMinutes > 0 && <span>~{totalMinutes} min total</span>}
+      {s.pillarId && (
+        <a href={routes.tutorial(s.topic, s.pillarId)} class="text-accent hover:underline">
+          Companion guide &rarr;
+        </a>
+      )}
+    </div>
+  </header>
+
+  <ol class="mt-10 max-w-3xl space-y-3">
+    {
+      items.map((t, i) => (
+        <li>
+          <a
+            href={routes.tutorial(s.topic, t.id)}
+            class="group flex gap-4 rounded-xl border border-ink-800 bg-ink-900/40 p-5 transition-colors hover:border-ink-600 hover:bg-ink-900"
+          >
+            <span class="grid size-8 shrink-0 place-items-center rounded-full border border-ink-700 font-mono text-xs text-ink-400 tabular-nums group-hover:border-accent/50 group-hover:text-accent">
+              {i + 1}
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[0.9375rem] font-medium leading-snug text-ink-100 group-hover:text-white">
+                {t.data.h1}
+              </span>
+              <RichText class="mt-1.5 block text-sm leading-relaxed text-ink-500" text={t.data.excerpt} />
+              <span class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[0.625rem] uppercase tracking-wider text-ink-600">
+                <span>{UI.meta[t.data.difficulty]}</span>
+                {t.data.totalMinutes && <span>{t.data.totalMinutes} min</span>}
+                <span>{t.data.steps.length} steps</span>
+              </span>
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="mt-14 flex flex-wrap gap-3 text-sm">
+    <a href={routes.topic(s.topic)} class="rounded-lg border border-ink-700 px-4 py-2 text-ink-300 hover:border-ink-500 hover:text-white">
+      &larr; {UI.cta.backToTopic}
+    </a>
+    <a href={routes.tutorials(s.topic)} class="rounded-lg border border-ink-700 px-4 py-2 text-ink-300 hover:border-ink-500 hover:text-white">
+      {UI.section.allTutorials}
+    </a>
+  </div>
+</BaseLayout>

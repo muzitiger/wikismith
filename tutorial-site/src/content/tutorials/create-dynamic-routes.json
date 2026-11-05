@@ -1,0 +1,272 @@
+{
+  "slug": "create-dynamic-routes",
+  "topic": "astro",
+  "template": "howto",
+  "seo": {
+    "title": "How to Create Dynamic Routes in Astro with getStaticPaths",
+    "description": "Build dynamic routes in Astro using bracketed filenames and getStaticPaths. Covers rest params, typed props, and the mismatch error that blocks builds."
+  },
+  "h1": "How to Create Dynamic Routes in Astro",
+  "answer": "Create a file with brackets in its name, such as src/pages/blog/[slug].astro, and export getStaticPaths() returning one object per page with params and optional props. Astro generates one static HTML file per entry at build time.",
+  "excerpt": "Bracketed filenames, getStaticPaths, rest parameters, and the prop-passing pattern that keeps dynamic pages type-safe.",
+  "primaryKeyword": "how to create dynamic routes in astro",
+  "secondaryKeywords": [
+    "astro getStaticPaths",
+    "astro dynamic routing",
+    "astro rest parameters",
+    "astro catch-all route"
+  ],
+  "difficulty": "beginner",
+  "totalMinutes": 18,
+  "testedWith": {
+    "version": "5.18.2",
+    "date": "2026-10-26",
+    "environment": "macOS 15.6 / Node 22.11"
+  },
+  "prerequisites": [
+    {
+      "text": "A working Astro project with at least one page",
+      "kind": "tool",
+      "required": true,
+      "verify": {
+        "cmd": "npx astro build",
+        "expect": "Complete!"
+      }
+    },
+    {
+      "text": "Basic familiarity with async/await in JavaScript",
+      "kind": "knowledge",
+      "required": true
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "title": "Name the file with a bracketed segment",
+      "subSteps": [
+        {
+          "title": "Brackets define the parameter name",
+          "text": "The text inside the brackets becomes the key in the params object you return. It is not a placeholder you can name arbitrarily later."
+        },
+        {
+          "title": "The folder decides the URL shape",
+          "text": "src/pages/blog/[slug].astro produces /blog/<value>/, and the file must live inside src/pages for the router to see it."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Create the file at `src/pages/blog/[slug].astro`. The bracketed segment is the dynamic part; everything around it is literal. Two pages — `index.astro` and `[slug].astro` — can coexist in the same folder because the static route always wins over the dynamic one for the bare path."
+        },
+        {
+          "type": "note",
+          "tone": "info",
+          "text": "Route priority is static over dynamic, and more specific dynamic over less specific. `/blog/about/` beats `/blog/[slug]/` even though both could match — so you can hand-write individual pages later without renaming anything."
+        }
+      ],
+      "expected": "The file exists at src/pages/blog/[slug].astro and the dev server reports no route errors.",
+      "minutes": 3,
+      "errorIds": []
+    },
+    {
+      "n": 2,
+      "title": "Export getStaticPaths with one entry per page",
+      "subSteps": [
+        {
+          "title": "The function must be named exactly",
+          "text": "getStaticPaths is detected by name. A typo means Astro builds zero pages from that route without failing."
+        },
+        {
+          "title": "params keys must match the bracket names",
+          "text": "A missing key produces a build error naming the route and the expected parameter."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Add the export above your component code. It is async, so it can fetch or read data first."
+        },
+        {
+          "type": "code",
+          "lang": "astro",
+          "filename": "src/pages/blog/[slug].astro",
+          "code": "---\nimport { getCollection } from 'astro:content';\n\nexport async function getStaticPaths() {\n  const posts = await getCollection('blog');\n  return posts.map((post) => ({\n    params: { slug: post.id },\n    props: { post },\n  }));\n}\n\nconst { post } = Astro.props;\n---\n\n<h1>{post.data.title}</h1>\n"
+        },
+        {
+          "type": "p",
+          "text": "The `props` field is where the type safety comes from. Instead of looking the entry up again inside the component, you pass the object through and destructure it. One lookup per page, and the editor knows the full shape.\n\nIf you skip `props` and rely on `Astro.params.slug` to re-fetch, you do the work twice and lose the type information — `Astro.params.slug` is `string | undefined` no matter what you know about it."
+        }
+      ],
+      "expected": "Each entry in the returned array produces one page, and Astro.props contains the passed object.",
+      "minutes": 7,
+      "errorIds": [
+        "getstaticpaths-missing-param"
+      ]
+    },
+    {
+      "n": 3,
+      "title": "Handle nested paths with a rest parameter",
+      "subSteps": [
+        {
+          "title": "Use [...slug] for multi-segment paths",
+          "text": "A rest parameter matches any number of segments, including slashes, and arrives as one string."
+        },
+        {
+          "title": "Rest params are greedy",
+          "text": "They match everything after the fixed prefix, so a rest route at the top level swallows every URL on the site."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "When content is organized in nested folders, the entry id contains slashes — `guides/deploy/cloudflare`. A single `[slug]` cannot match that because it does not span segments. Use `[...slug]` instead."
+        },
+        {
+          "type": "code",
+          "lang": "astro",
+          "filename": "src/pages/docs/[...path].astro",
+          "code": "---\nimport { getCollection } from 'astro:content';\n\nexport async function getStaticPaths() {\n  const docs = await getCollection('docs');\n  return docs.map((doc) => ({\n    params: { path: doc.id },   // 'guides/deploy/cloudflare'\n    props: { doc },\n  }));\n}\n\nconst { doc } = Astro.props;\n---\n"
+        },
+        {
+          "type": "p",
+          "text": "The generated URL keeps the slashes: `/docs/guides/deploy/cloudflare/`. Note that `params` still holds a single string, slashes included — it is not an array, which surprises people coming from file-path routers that split segments."
+        }
+      ],
+      "expected": "Nested entry ids generate nested URLs with the full path preserved.",
+      "minutes": 5,
+      "errorIds": [
+        "getstaticpaths-missing-param"
+      ]
+    },
+    {
+      "n": 4,
+      "title": "Confirm the generated output",
+      "subSteps": [
+        {
+          "title": "Count the HTML files",
+          "text": "Each entry becomes one directory with an index.html inside it, because of the directory build format."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Build and count. The number of directories under the route prefix should equal the number of entries you returned — no more, no fewer."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "code": "npx astro build && ls dist/blog | wc -l\n# should equal the number of collection entries"
+        },
+        {
+          "type": "p",
+          "text": "A count of zero with a successful build almost always means `getStaticPaths` returned an empty array — usually because the collection query returned nothing. A count lower than expected means some entries share an id, which happens when two files have the same name in different folders and the loader flattens them."
+        }
+      ],
+      "expected": "The number of generated page directories matches the number of entries returned.",
+      "verify": {
+        "cmd": "ls dist/blog | wc -l",
+        "expect": "matches your entry count"
+      },
+      "minutes": 3,
+      "errorIds": [
+        "getstaticpaths-missing-param"
+      ]
+    }
+  ],
+  "body": [
+    {
+      "type": "h2",
+      "text": "Static versus on-demand routes"
+    },
+    {
+      "type": "p",
+      "text": "Everything above is static generation: the full set of pages is known at build time, and `getStaticPaths` enumerates them. That is the right model for content, because every page exists as a file and there is nothing to compute per request.\n\nOn-demand routes are the other case. When you set `output: 'server'` and add an adapter, a dynamic route can render per request without `getStaticPaths` at all. The trade is real — you need a running server, and you lose the ability to serve the whole site from a CDN edge cache with no origin.\n\nA useful rule: if the set of URLs is finite and knowable at build time, use static. If it depends on a request (a user id, a search query, a tenant), use on-demand for that route only. Astro supports both in one project via per-route prerender settings."
+    },
+    {
+      "type": "table",
+      "caption": "Which model fits",
+      "headers": [
+        "Situation",
+        "Model",
+        "Why"
+      ],
+      "rows": [
+        [
+          "Blog posts from Markdown",
+          "Static",
+          "Finite set, known at build"
+        ],
+        [
+          "Product pages from a CMS",
+          "Static + rebuild webhook",
+          "Cacheable, no origin needed"
+        ],
+        [
+          "User dashboard",
+          "On-demand",
+          "Depends on session"
+        ],
+        [
+          "Search results page",
+          "On-demand, noindex",
+          "Infinite permutations, must not be indexed"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Passing data forward instead of re-fetching"
+    },
+    {
+      "type": "p",
+      "text": "There is a pattern worth adopting early: put everything the page needs into `props` in `getStaticPaths`, and treat the component body as a pure render function. It removes a whole class of bug where the list page and the detail page disagree about which entries exist.\n\nThe alternative — reading `Astro.params` and querying again — is not wrong, but it doubles the data access and makes the component depend on ambient router state rather than on its input."
+    },
+    {
+      "type": "h2",
+      "text": "Common routing mistakes"
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "items": [
+        "**Mismatched parameter names.** `[slug].astro` must return `params.slug`. Returning `params.id` fails the build with a message that names the expected parameter — read it rather than guessing.",
+        "**A typo in the export name.** `getStaticPath` produces zero pages and no error. The build succeeds with an empty route.",
+        "**Brackets in a folder name.** `src/pages/[lang]/about.astro` makes `lang` dynamic, which is usually not what was intended. Move the bracket to the segment that actually varies.",
+        "**Expecting dev and build to behave the same.** In dev, Astro evaluates the route on request, so a mistake can look fine locally and produce missing pages in a production build."
+      ]
+    }
+  ],
+  "errorIds": [
+    "getstaticpaths-missing-param"
+  ],
+  "faq": [
+    {
+      "q": "Can I use getStaticPaths with SSR output?",
+      "a": "Not for on-demand routes — SSR renders per request and does not enumerate paths. You can still prerender individual routes while running a server adapter by exporting `prerender = true` from that route."
+    },
+    {
+      "q": "How do I create paginated routes?",
+      "a": "Use a `[page].astro` route and return one entry per page number in getStaticPaths, passing the slice as props. Also generate the first page at the unnumbered URL so `/blog/` is not a 404."
+    },
+    {
+      "q": "What happens if two entries produce the same URL?",
+      "a": "The last one wins silently in most cases, or the build reports a duplicate route depending on the adapter. It is worth asserting uniqueness in getStaticPaths when ids come from user data."
+    },
+    {
+      "q": "Do dynamic routes work with trailing slashes disabled?",
+      "a": "Yes, but set `trailingSlash` in the Astro config to match your host rather than relying on redirects. A sitemap and a canonical tag that disagree with the served URL waste crawl budget."
+    }
+  ],
+  "relatedIds": [
+    "content-collections-tutorial",
+    "add-a-sitemap"
+  ],
+  "tags": [
+    "routing",
+    "content-collections"
+  ],
+  "published": "2026-02-22",
+  "updated": "2026-10-26",
+  "seriesId": "astro-fundamentals",
+  "order": 2
+}

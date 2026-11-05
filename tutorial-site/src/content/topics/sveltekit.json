@@ -1,0 +1,25 @@
+{
+  "slug": "sveltekit",
+  "name": "SvelteKit",
+  "nameShort": "SvelteKit",
+  "tagline": "The application framework built on Svelte and its compiler",
+  "seo": {
+    "title": "SvelteKit: Overview, Strengths, and Trade-offs",
+    "description": "What SvelteKit is, how its compiler-first model differs from React-based frameworks, and when it beats a content-first framework."
+  },
+  "kind": "stub",
+  "status": "live",
+  "intro": "SvelteKit is the official application framework for Svelte. Svelte compiles components into imperative DOM updates at build time instead of shipping a runtime diffing library, which keeps bundles small without manual optimization. SvelteKit layers on routing, server routes, form actions, and adapters for different hosting targets.\n\nIts model is closest to a traditional full-stack framework: you get shared layouts, server load functions, and progressive-enhancement form handling by default. Compared with a content-first framework, it puts more machinery in front of you from the start — which is the right trade when your site has genuine application state, and friction when it does not. This is a reference entry used by the comparison pages.",
+  "category": "Full-stack Svelte framework",
+  "currentVersion": "2.42",
+  "officialUrl": "https://svelte.dev",
+  "docsUrl": "https://svelte.dev/docs/kit",
+  "color": "#ff3e00",
+  "features": [
+    { "id": "routing", "label": "Routing" },
+    { "id": "form-actions", "label": "Form Actions" }
+  ],
+  "rivalIds": ["astro", "nextjs", "nuxt"],
+  "faq": [],
+  "updated": "2026-11-01"
+}

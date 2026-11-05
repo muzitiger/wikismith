@@ -1,0 +1,63 @@
+---
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+
+interface Props {
+  topics: Array<{ slug: string; name: string }>;
+}
+
+const { topics } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-20 border-t border-ink-800">
+  <div class="shell py-12">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <span
+            class="grid size-7 place-items-center rounded-md bg-accent text-accent-ink font-mono text-xs font-bold"
+            aria-hidden="true">T</span
+          >
+          <span class="text-sm font-semibold text-ink-100">{UI.siteName}</span>
+        </div>
+        <p class="mt-3 text-sm leading-relaxed text-ink-500 max-w-xs">{UI.siteTagline}</p>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-ink-500">{UI.footer.topics}</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          {
+            topics.map((t) => (
+              <li>
+                <a href={routes.topic(t.slug)} class="text-ink-400 hover:text-accent transition-colors">
+                  {t.name}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-ink-500">{UI.footer.resources}</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a href={routes.comparisons()} class="text-ink-400 hover:text-accent transition-colors">{UI.nav.comparisons}</a></li>
+          <li><a href={routes.legal('about')} class="text-ink-400 hover:text-accent transition-colors">{UI.footer.about}</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-ink-500">{UI.footer.legal}</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a href={routes.legal('privacy')} class="text-ink-400 hover:text-accent transition-colors">{UI.footer.privacy}</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-10 border-t border-ink-800/70 pt-6 flex flex-col sm:flex-row gap-2 justify-between text-xs text-ink-600">
+      <p>&copy; {year} {UI.siteName}</p>
+      <p>{UI.footer.builtWith}</p>
+    </div>
+  </div>
+</footer>

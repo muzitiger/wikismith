@@ -1,0 +1,44 @@
+{
+  "slug": "privacy",
+  "title": "Privacy",
+  "seo": {
+    "title": "Privacy Policy for This Site",
+    "description": "What this site collects, what it does not, and how analytics and cookies are handled. Written to be readable rather than legally exhaustive.",
+    "noindex": false
+  },
+  "updated": "2026-10-30",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "This is a static website. Pages are generated at build time and served as plain HTML files. There is no application server processing your requests and no user accounts."
+    },
+    {
+      "type": "h2",
+      "text": "What is collected"
+    },
+    {
+      "type": "p",
+      "text": "Standard web server logs are retained by the hosting provider. These include IP address, user agent, requested path, and timestamp. They are used for measuring traffic volume and diagnosing failures."
+    },
+    {
+      "type": "p",
+      "text": "If analytics are enabled, they are privacy-respecting and aggregate: no cross-site tracking, no advertising identifiers, no individual profiles. Analytics can be disabled entirely at the site level, and when disabled the site makes no third-party requests at all."
+    },
+    {
+      "type": "h2",
+      "text": "Cookies"
+    },
+    {
+      "type": "p",
+      "text": "This site sets no cookies for tracking. There is no consent banner because there is nothing to consent to."
+    },
+    {
+      "type": "h2",
+      "text": "Third parties"
+    },
+    {
+      "type": "p",
+      "text": "Outbound links to external sites are ordinary links. Following one takes you to a site with its own privacy policy, which this document does not cover. No embedded third-party scripts load on page view."
+    }
+  ]
+}

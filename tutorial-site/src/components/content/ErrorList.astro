@@ -1,0 +1,39 @@
+---
+/**
+ * B6 ErrorList — error summaries, never the error's full body.
+ *
+ * The full fix for an error lives at /{topic}/errors/{slug}/ and nowhere else.
+ * Inlining it here would create a near-duplicate of that page, split its
+ * internal links, and compete with it in the index. So: one line each, link out.
+ */
+import { routes } from '@/lib/routes';
+import { inlineHtml } from '@/lib/blocks';
+
+interface Props {
+  errors: Array<{ slug: string; message: string; answer: string; category: string }>;
+  topic: string;
+}
+
+const { errors, topic } = Astro.props;
+---
+
+{errors.length > 0 && (
+  <ul class="mt-4 divide-y divide-ink-800 rounded-lg border border-ink-800" data-block="errors">
+    {errors.map((e) => (
+      <li>
+        <a
+          href={routes.error(topic, e.slug)}
+          class="group flex flex-col gap-1 px-4 py-3.5 transition-colors hover:bg-ink-900/60"
+        >
+          <span class="flex items-start gap-2">
+            <span class="mt-1 font-mono text-[0.625rem] text-danger" aria-hidden="true">ERR</span>
+            <code class="font-mono text-[0.8125rem] leading-snug text-ink-200 group-hover:text-white">
+              {e.message}
+            </code>
+          </span>
+          <span class="pl-9 text-sm text-ink-400" set:html={inlineHtml(e.answer)} />
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

@@ -1,0 +1,34 @@
+{
+  "slug": "eleventy",
+  "name": "Eleventy",
+  "nameShort": "Eleventy",
+  "tagline": "The minimal JavaScript static site generator",
+  "seo": {
+    "title": "Eleventy: Overview, Strengths, and Trade-offs",
+    "description": "What Eleventy is, how its template-agnostic approach differs from a component framework, and when that flexibility becomes overhead."
+  },
+  "kind": "stub",
+  "status": "live",
+  "intro": "Eleventy is a static site generator that deliberately does almost nothing. It takes templates in eleven different languages — Nunjucks, Liquid, Handlebars, Markdown, plain HTML, and others — plus a data cascade, and writes HTML files. There is no client-side runtime, no component system, and no prescribed way to build a page. Configuration lives in a single .eleventy.js file that most projects keep under fifty lines.\n\nThe flexibility is the point and also the cost. Because Eleventy is template-agnostic, two projects can share almost no code, and there is no shared answer for things like scoped styles or interactive components. Teams that want structure end up layering on their own conventions. It is excellent for content sites where the build is genuinely simple and the authors are comfortable with the underlying template language. This is a reference entry used by the comparison pages.",
+  "category": "Static site generator",
+  "currentVersion": "3.1",
+  "officialUrl": "https://www.11ty.dev",
+  "docsUrl": "https://www.11ty.dev/docs/",
+  "color": "#1f2937",
+  "features": [
+    {
+      "id": "templating",
+      "label": "Multi-language Templates"
+    },
+    {
+      "id": "data-cascade",
+      "label": "Data Cascade"
+    }
+  ],
+  "rivalIds": [
+    "astro",
+    "hugo"
+  ],
+  "faq": [],
+  "updated": "2026-11-01"
+}

@@ -1,0 +1,359 @@
+{
+  "slug": "content-collections-tutorial",
+  "topic": "astro",
+  "template": "pillar",
+  "seo": {
+    "title": "Astro Content Collections Tutorial: Schema, Queries, Types",
+    "description": "Learn Astro content collections from scratch: define a Zod schema, load Markdown or JSON, query with getCollection, and get type-safe data at build time."
+  },
+  "h1": "Astro Content Collections Tutorial: Schema, Queries, and Types",
+  "answer": "Content collections let you put Markdown or JSON files in a folder, validate their frontmatter against a Zod schema at build time, and query them with getCollection(). If a post is missing a required field, the build fails with the file name instead of shipping a broken page.",
+  "excerpt": "The complete walkthrough of Astro content collections: defining a schema, loading files, querying with getCollection and getEntry, and handling the type errors that trip people up.",
+  "primaryKeyword": "astro content collections tutorial",
+  "secondaryKeywords": [
+    "astro content collections schema",
+    "astro getCollection",
+    "astro zod frontmatter",
+    "astro content layer"
+  ],
+  "difficulty": "intermediate",
+  "totalMinutes": 35,
+  "testedWith": {
+    "version": "5.18.2",
+    "date": "2026-10-28",
+    "environment": "macOS 15.6 / Node 22.11"
+  },
+  "prerequisites": [
+    {
+      "text": "An Astro project on version 5.0 or newer",
+      "kind": "tool",
+      "version": ">=5.0.0",
+      "required": true,
+      "verify": {
+        "cmd": "npx astro --version",
+        "expect": "5.x.x"
+      },
+      "tutorialId": "add-a-sitemap"
+    },
+    {
+      "text": "Node.js 18.17 or newer",
+      "kind": "tool",
+      "version": ">=18.17",
+      "required": true,
+      "verify": {
+        "cmd": "node --version",
+        "expect": "v20.x or v22.x"
+      }
+    },
+    {
+      "text": "Comfort reading TypeScript type annotations",
+      "kind": "knowledge",
+      "required": true
+    },
+    {
+      "text": "At least three Markdown files you want to organize",
+      "kind": "file",
+      "required": false
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "title": "Understand what a collection actually is",
+      "subSteps": [
+        {
+          "title": "A collection is a folder plus a schema",
+          "text": "You point a collection at a directory and describe the shape of the frontmatter inside it. Astro then refuses to build if a file does not match."
+        },
+        {
+          "title": "It is not a database",
+          "text": "Nothing is indexed or persisted. At build time Astro reads every file, validates it, and hands you plain objects. There is no query engine and no runtime cost."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "The mental model that makes the rest of this page obvious: a content collection is a **typed folder**. Before collections existed, you imported Markdown with `import post from './post.md'` and got whatever frontmatter happened to be in the file — no validation, no autocomplete, and a runtime crash the moment you assumed a field existed.\n\nA collection changes that by moving the check to build time. You declare the shape once, and every file in the folder is validated against it. A missing `pubDate` becomes a build error naming the exact file, not a blank date on a live page three weeks later."
+        },
+        {
+          "type": "note",
+          "tone": "info",
+          "text": "Astro 5 introduced the Content Layer, which lets a collection load from a remote source (an API, a CMS) instead of a local folder. Everything on this page applies to both; only the loader changes."
+        }
+      ],
+      "expected": "You can explain the difference between importing a Markdown file directly and reading it through a collection.",
+      "minutes": 5,
+      "errorIds": []
+    },
+    {
+      "n": 2,
+      "title": "Declare the collection and its schema",
+      "subSteps": [
+        {
+          "title": "Create the config file",
+          "text": "The file is `src/content.config.ts`. In Astro 5 it replaces the old `src/content/config.ts`, and leaving the old one in place is the single most common upgrade mistake."
+        },
+        {
+          "title": "Add the glob loader",
+          "text": "A loader tells Astro where the files live. `glob()` takes a base directory and a pattern."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Create `src/content.config.ts` at the root of `src`, not inside `src/content`. This placement is not cosmetic — Astro looks for the file at exactly this path, and a config sitting in the wrong folder produces an empty collection with no error message."
+        },
+        {
+          "type": "code",
+          "lang": "ts",
+          "filename": "src/content.config.ts",
+          "code": "import { defineCollection, z } from 'astro:content';\nimport { glob } from 'astro/loaders';\n\nconst blog = defineCollection({\n  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),\n  schema: z.object({\n    title: z.string().max(80),\n    description: z.string().min(50).max(160),\n    pubDate: z.coerce.date(),\n    updated: z.coerce.date().optional(),\n    draft: z.boolean().default(false),\n    tags: z.array(z.string()).default([]),\n  }),\n});\n\nexport const collections = { blog };\n"
+        },
+        {
+          "type": "p",
+          "text": "Two details in that snippet are worth pausing on. `z.coerce.date()` accepts a string like `\"2026-03-14\"` from frontmatter and converts it to a real `Date`, so you never compare strings when sorting. And `.default(false)` means the field can be omitted entirely in a file — useful for `draft`, where you want the common case to require no typing."
+        },
+        {
+          "type": "p",
+          "text": "The `base` path is relative to the project root, not to `src`. Writing `./src/content/blog` is correct; writing `./content/blog` resolves to a directory that does not exist, and you get an empty array from `getCollection` rather than an error."
+        }
+      ],
+      "expected": "The file exists at src/content.config.ts and running `npx astro sync` prints no schema errors.",
+      "verify": {
+        "cmd": "npx astro sync",
+        "expect": "Completed in ... with 0 errors"
+      },
+      "minutes": 8,
+      "errorIds": [
+        "content-collections-invalid-frontmatter"
+      ]
+    },
+    {
+      "n": 3,
+      "title": "Add content files that match the schema",
+      "subSteps": [
+        {
+          "title": "Frontmatter must be YAML between fences",
+          "text": "The block starts and ends with three dashes on their own line. A missing closing fence makes the whole file body disappear into YAML parsing."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Create a file at `src/content/blog/first-post.md`. The frontmatter fence is three dashes, and every field you declared as required must appear."
+        },
+        {
+          "type": "code",
+          "lang": "md",
+          "filename": "src/content/blog/first-post.md",
+          "code": "---\ntitle: Setting up a build pipeline\ndescription: A short walkthrough of wiring CI to a static site, including the cache step most guides skip.\npubDate: 2026-03-14\ntags: [ci, tooling]\n---\n\nYour content starts here.\n"
+        },
+        {
+          "type": "p",
+          "text": "Now deliberately break it: delete the `description` line and run `npx astro sync`. You should get an error naming `first-post.md` and the path `description`. Read that error once and you will recognize it forever — it is the same message you will see any time a field is missing or the wrong type."
+        },
+        {
+          "type": "note",
+          "tone": "warn",
+          "text": "If `sync` reports no errors but `getCollection('blog')` returns an empty array, the files are in the wrong directory relative to `base`. The schema never ran because no files were found."
+        }
+      ],
+      "expected": "A Markdown file exists in src/content/blog and `npx astro sync` passes after you restore the deleted field.",
+      "minutes": 7,
+      "errorIds": [
+        "content-collections-invalid-frontmatter",
+        "content-collections-empty-collection"
+      ]
+    },
+    {
+      "n": 4,
+      "title": "Query the collection in a page",
+      "subSteps": [
+        {
+          "title": "getCollection returns every entry",
+          "text": "It is async, so it must be awaited in the component frontmatter."
+        },
+        {
+          "title": "The entry id is the file path without extension",
+          "text": "`src/content/blog/first-post.md` becomes the id `first-post`. Nested folders produce ids with slashes, which is what makes catch-all routes work."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "In `src/pages/blog/index.astro`, load the collection and render a list. Note that the frontmatter runs at build time — this code never reaches the browser."
+        },
+        {
+          "type": "code",
+          "lang": "astro",
+          "filename": "src/pages/blog/index.astro",
+          "code": "---\nimport { getCollection } from 'astro:content';\n\nconst posts = (await getCollection('blog', ({ data }) => !data.draft))\n  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());\n---\n\n<ul>\n  {posts.map((post) => (\n    <li>\n      <a href={`/blog/${post.id}/`}>{post.data.title}</a>\n      <time datetime={post.data.pubDate.toISOString()}>\n        {post.data.pubDate.toLocaleDateString('en-US')}\n      </time>\n    </li>\n  ))}\n</ul>\n"
+        },
+        {
+          "type": "p",
+          "text": "The second argument to `getCollection` is a filter that runs before you get the array. Doing the draft filtering there rather than in `.filter()` afterwards keeps the intent readable and avoids materializing entries you are about to discard.\n\nThe sort is descending by date, which is what readers expect on a blog index. `.valueOf()` on a `Date` gives a number, and subtracting numbers is what `Array.prototype.sort` wants — returning `b.data.pubDate - a.data.pubDate` works in JavaScript by accident but fails type checking, because `Date` minus `Date` is not a typed operation."
+        }
+      ],
+      "expected": "The blog index lists every non-draft post, newest first, and each link points at /blog/<file-name>/.",
+      "minutes": 8,
+      "errorIds": [
+        "getcollection-returns-empty-array"
+      ]
+    },
+    {
+      "n": 5,
+      "title": "Render a single entry with getEntry",
+      "subSteps": [
+        {
+          "title": "Use a dynamic route with getStaticPaths",
+          "text": "Each entry id becomes one page. `getStaticPaths` must return `params` and can pass extra `props`."
+        },
+        {
+          "title": "render() returns the compiled body",
+          "text": "In Astro 5 it is a function on the entry, not a component import."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Create `src/pages/blog/[slug].astro`. The `getStaticPaths` function enumerates every entry and produces one static page per id."
+        },
+        {
+          "type": "code",
+          "lang": "astro",
+          "filename": "src/pages/blog/[slug].astro",
+          "code": "---\nimport { getCollection, render } from 'astro:content';\n\nexport async function getStaticPaths() {\n  const posts = await getCollection('blog');\n  return posts.map((post) => ({\n    params: { slug: post.id },\n    props: { post },\n  }));\n}\n\nconst { post } = Astro.props;\nconst { Content, headings } = await render(post);\n---\n\n<article>\n  <h1>{post.data.title}</h1>\n  <Content />\n</article>\n"
+        },
+        {
+          "type": "p",
+          "text": "The pattern that catches people out: `render` is imported from `astro:content`, not destructured from the entry. In Astro 4 and earlier you wrote `const { Content } = await post.render()`. That method is gone in 5, and the old code produces a type error that reads like `Property 'render' does not exist on type 'CollectionEntry'`.\n\n`headings` is worth destructuring even if you do not use it yet — it gives you the parsed H2/H3 tree, which is what a table of contents needs without re-parsing HTML."
+        }
+      ],
+      "expected": "Visiting /blog/first-post/ renders the Markdown body under the frontmatter title.",
+      "verify": {
+        "cmd": "npx astro build",
+        "expect": "building client (vite) ... complete"
+      },
+      "minutes": 7,
+      "errorIds": [
+        "post-render-not-a-function"
+      ]
+    }
+  ],
+  "body": [
+    {
+      "type": "h2",
+      "text": "Why the schema is the whole point"
+    },
+    {
+      "type": "p",
+      "text": "It is tempting to treat the schema as ceremony — a few lines you copy from a tutorial and forget. The value only shows up later, and it shows up as a category of bug that stops existing.\n\nConsider a site with 200 posts written over two years by three people. Without a schema, one of them will eventually write `date:` instead of `pubDate:`, and that post sorts to the bottom of the index or renders an empty `<time>` element. Nobody notices for months, because nothing fails. With a schema, that typo fails the build in the author's terminal before it is ever committed."
+    },
+    {
+      "type": "table",
+      "caption": "What each schema rule buys you",
+      "headers": [
+        "Field pattern",
+        "Failure it prevents"
+      ],
+      "rows": [
+        [
+          "`z.string().max(80)`",
+          "Titles that overflow the layout on narrow screens"
+        ],
+        [
+          "`z.coerce.date()`",
+          "String vs Date comparison bugs when sorting"
+        ],
+        [
+          "`.default(false)`",
+          "Authors having to type a field that is almost always the same"
+        ],
+        [
+          "`.optional()`",
+          "Requiring a field that only three posts actually have"
+        ],
+        [
+          "`z.enum([...])`",
+          "Typos in category names silently creating new categories"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The `z.enum` row deserves emphasis. Free-text categories look harmless until you have `guides`, `guide`, and `Guides` as three separate values in your filter UI. An enum makes that a build failure instead of a data cleanup."
+    },
+    {
+      "type": "h2",
+      "text": "Collections versus importing Markdown directly"
+    },
+    {
+      "type": "p",
+      "text": "Direct imports still work and are still appropriate for one or two files you control completely — a single about page, for instance. They stop being appropriate the moment the content outlives your memory of it.\n\nThe practical dividing line: if you would want a build to fail when a field is missing, use a collection. If the file is structural and always present, an import is fine and skips a layer."
+    },
+    {
+      "type": "h2",
+      "text": "Where people get stuck"
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "items": [
+        "**Wrong config path.** `src/content/config.ts` is the Astro 4 location. In 5 the file is `src/content.config.ts`. The old one is ignored silently.",
+        "**Wrong `base` in the loader.** It resolves from the project root, so it needs the `./src/` prefix.",
+        "**Stale types.** After changing a schema, editors keep the old types until `npx astro sync` regenerates `.astro/types.d.ts`.",
+        "**Assuming `id` is the filename only.** For nested folders it includes the path segments, which is exactly what catch-all routes need."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "When not to use content collections"
+    },
+    {
+      "type": "p",
+      "text": "If your content lives in a CMS and you fetch it per request, collections add a build step that provides no validation benefit — the CMS schema is already the source of truth, and you would be duplicating it. In that case fetch directly in the page.\n\nSimilarly, if you have four pages total and they never change, the config file is more machinery than the problem deserves. Collections pay off with volume and with multiple authors."
+    }
+  ],
+  "errorIds": [
+    "content-collections-invalid-frontmatter",
+    "content-collections-empty-collection",
+    "getcollection-returns-empty-array",
+    "post-render-not-a-function"
+  ],
+  "faq": [
+    {
+      "q": "Do content collections work with JSON or YAML files too?",
+      "a": "Yes. The glob pattern decides which files are picked up — `**/*.json` or `**/*.yaml` work the same way as Markdown. For JSON you typically skip `render()` entirely and read `entry.data` directly, since there is no body to compile."
+    },
+    {
+      "q": "What replaced the old `src/content/config.ts`?",
+      "a": "In Astro 5 the file moved to `src/content.config.ts` at the root of `src`. The old path is not read, and leaving a config there produces an empty collection rather than an error, which is why this upgrade trips people up."
+    },
+    {
+      "q": "Can I reference one collection entry from another?",
+      "a": "Use `reference()` in the schema. It stores an id and validates at build time that the target exists, which turns a broken cross-link into a build failure instead of a 404."
+    },
+    {
+      "q": "Is the schema validated on every build or only on sync?",
+      "a": "On every build. `astro sync` runs it too, which is why the command is the fastest way to check a schema change without waiting for a full build."
+    },
+    {
+      "q": "How do I handle drafts in production but still see them locally?",
+      "a": "Add a `draft` boolean and filter with `import.meta.env.PROD` in the query. Drafts render in dev and are excluded from the production build, with no separate config."
+    }
+  ],
+  "relatedIds": [
+    "add-a-sitemap",
+    "create-dynamic-routes",
+    "migrate-from-nextjs-to-astro"
+  ],
+  "tags": [
+    "content-collections",
+    "data-modeling",
+    "typescript"
+  ],
+  "published": "2026-02-10",
+  "updated": "2026-10-28",
+  "seriesId": "astro-fundamentals",
+  "order": 3
+}

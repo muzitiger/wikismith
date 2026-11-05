@@ -1,0 +1,71 @@
+{
+  "slug": "astro",
+  "name": "Astro",
+  "nameShort": "Astro",
+  "tagline": "The content-first web framework that ships zero JavaScript by default",
+  "seo": {
+    "title": "Astro Tutorials: Step-by-Step Guides for Real Projects",
+    "description": "Practical Astro guides with tested commands, expected results at every step, and fixes for the errors you'll actually hit. Verified against Astro 5."
+  },
+  "kind": "primary",
+  "status": "live",
+  "intro": "Astro is a web framework built around one opinion: a page that only displays content should not ship a JavaScript runtime to do it. You write components in .astro files that look like HTML with a frontmatter fence, and everything outside that fence is evaluated at build time and then thrown away. Interactive pieces are opted into individually as islands, and only those islands get hydrated in the browser.\n\nThe practical consequence is that most of what makes Astro confusing to newcomers is not the syntax — it is deciding what runs where. A console.log in your frontmatter appears in the terminal during the build, not in the browser console. A variable you computed at the top of a component is gone by the time the page reaches the user. Once that mental model clicks, the rest of the framework is small.\n\nThese guides assume you already write HTML and are comfortable in a terminal. Every page states the version it was tested against, gives you a command to confirm each step worked, and links to the specific error page for the failure you will most likely hit at that exact point.",
+  "category": "Static site framework",
+  "currentVersion": "5.18",
+  "officialUrl": "https://astro.build",
+  "docsUrl": "https://docs.astro.build",
+  "color": "#ff5d01",
+  "features": [
+    {
+      "id": "content-collections",
+      "label": "Content Collections"
+    },
+    {
+      "id": "islands",
+      "label": "Islands Architecture"
+    },
+    {
+      "id": "routing",
+      "label": "File-based Routing"
+    },
+    {
+      "id": "ssr",
+      "label": "Server-side Rendering"
+    },
+    {
+      "id": "view-transitions",
+      "label": "View Transitions"
+    },
+    {
+      "id": "i18n",
+      "label": "Internationalization"
+    }
+  ],
+  "rivalIds": [
+    "nextjs",
+    "sveltekit",
+    "hugo",
+    "eleventy",
+    "nuxt",
+    "gatsby"
+  ],
+  "faq": [
+    {
+      "q": "Do I need to know React to use Astro?",
+      "a": "No. Astro components are their own thing and cover most of what a content site needs. You only reach for React, Vue, or Svelte when you need client-side state, and even then it can be scoped to a single interactive island rather than the whole page."
+    },
+    {
+      "q": "Is Astro only for blogs and documentation sites?",
+      "a": "It is strongest there, because those sites are mostly content with islands of interactivity. But Astro supports server-side rendering, API endpoints, and form actions, so you can build authenticated dashboards and simple SaaS products with it too. What it does not give you is a batteries-included app framework with client-side routing out of the box."
+    },
+    {
+      "q": "What happens to my JavaScript in an Astro build?",
+      "a": "Anything in a component's frontmatter runs at build time and is discarded. Template expressions are rendered to HTML strings. Only components explicitly marked with a client directive — `client:load`, `client:idle`, `client:visible` — are bundled and hydrated in the browser."
+    },
+    {
+      "q": "Can I use Astro with a headless CMS?",
+      "a": "Yes, and it is a common setup. You fetch content at build time in a page or content collection loader, then rebuild on publish via a webhook. Because the output is static HTML, an unreachable CMS breaks your build rather than your live site."
+    }
+  ],
+  "updated": "2026-11-01"
+}

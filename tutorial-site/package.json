@@ -1,0 +1,32 @@
+{
+  "name": "tutorial-site",
+  "version": "0.1.0",
+  "description": "Programmatic-SEO tutorial site template. Astro 5 + Tailwind 4, multi-topic, pure static SSG.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20.3.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "check:content": "tsx scripts/check-content.ts",
+    "build": "tsx scripts/check-content.ts && astro build && npm run verify",
+    "build:only": "astro build",
+    "verify": "node scripts/check-build.mjs && node scripts/check-content-purity.mjs",
+    "reset": "node scripts/reset-template.mjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "clean": "rm -rf dist .astro"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.4",
+    "astro": "^5.18.2",
+    "tailwindcss": "^4.3.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

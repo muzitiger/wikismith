@@ -1,0 +1,97 @@
+---
+/**
+ * SERIES INDEX — /{topic}/series/
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import { getTopics, getSeriesForTopic, resolveSeriesItems } from '@/lib/content';
+import { breadcrumbNode, collectionPageNode } from '@/lib/jsonld';
+import RichText from '@/components/content/RichText.astro';
+
+export async function getStaticPaths() {
+  const topics = await getTopics();
+  return topics
+    .filter((t) => t.data.kind === 'primary')
+    .map((t) => ({ params: { topic: t.id }, props: { topic: t } }));
+}
+
+const { topic } = Astro.props;
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+const topicName = topic.data.nameShort ?? topic.data.name;
+const path = routes.seriesIndex(topic.id);
+
+const list = await getSeriesForTopic(topic.id);
+const withItems = await Promise.all(
+  list.map(async (s) => ({ s, items: await resolveSeriesItems(s) }))
+);
+
+const crumbs = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: topicName, path: routes.topic(topic.id) },
+  { name: 'Learning paths', path },
+];
+
+const jsonLd = [
+  breadcrumbNode({ origin }, crumbs),
+  collectionPageNode({ origin }, {
+    name: `${topicName} learning paths`,
+    description: `Ordered ${topicName} learning paths, each a sequence of guides where every part assumes only what came before it.`,
+    path,
+    updated: topic.data.updated,
+  }),
+];
+---
+
+<BaseLayout
+  title={`${topicName} Learning Paths`}
+  description={`Ordered sequences of ${topicName} guides. Each path assumes only what its earlier parts cover, so you can follow one end to end without gaps.`}
+  canonical={path}
+  noindex={topic.data.status === 'draft'}
+  titleSuffix={topicName}
+  jsonLd={jsonLd}
+  ogType="website"
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <header class="max-w-2xl">
+    <h1 class="text-3xl font-bold tracking-tight text-white md:text-4xl">{topicName} Learning Paths</h1>
+    <p class="mt-4 text-base leading-relaxed text-ink-400">
+      Guides ordered by dependency, not by date. Every part assumes only what the previous parts
+      covered, so following one end to end leaves no gaps.
+    </p>
+  </header>
+
+  {
+    withItems.length === 0 && <p class="mt-10 text-sm text-ink-500">No learning paths published yet.</p>
+  }
+
+  <div class="mt-10 space-y-4">
+    {
+      withItems.map(({ s, items }) => (
+        <a
+          href={routes.series(topic.id, s.id)}
+          class="group block rounded-xl border border-ink-800 bg-ink-900/40 p-5 transition-colors hover:border-ink-600 hover:bg-ink-900"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="text-base font-semibold text-ink-100 group-hover:text-white">{s.data.h1}</h2>
+            <span class="shrink-0 rounded-full border border-ink-700 px-2.5 py-1 font-mono text-[0.625rem] text-ink-400">
+              {items.length} parts
+            </span>
+          </div>
+          <RichText as="p" class="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-500" text={s.data.intro} />
+          <ol class="mt-3 space-y-1">
+            {items.map((t, i) => (
+              <li class="flex gap-2 font-mono text-[0.6875rem] text-ink-600">
+                <span class="tabular-nums">{i + 1}.</span>
+                <span class="truncate">{t.data.h1}</span>
+              </li>
+            ))}
+          </ol>
+        </a>
+      ))
+    }
+  </div>
+</BaseLayout>

@@ -1,0 +1,84 @@
+---
+/**
+ * COMPARISON INDEX — /vs/
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import { UI } from '@/config/ui';
+import { PAGE_COPY } from '@/config/pages';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import { getComparisons, getTopics } from '@/lib/content';
+import { breadcrumbNode, collectionPageNode, itemListNode } from '@/lib/jsonld';
+import RichText from '@/components/content/RichText.astro';
+
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+const path = routes.comparisons();
+
+const comparisons = await getComparisons();
+const topics = await getTopics();
+const byId = new Map(topics.map((t) => [t.id, t]));
+
+const crumbs = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: UI.nav.comparisons, path },
+];
+
+const jsonLd = [
+  breadcrumbNode({ origin }, crumbs),
+  collectionPageNode({ origin }, {
+    name: PAGE_COPY.comparisons.listName,
+    description: PAGE_COPY.comparisons.listDescription,
+    path,
+    updated: new Date(),
+  }),
+  itemListNode({ origin }, {
+    name: 'Comparisons',
+    path,
+    items: comparisons.map((c) => ({ name: c.data.h1, path: routes.comparison(c.id) })),
+  }),
+];
+---
+
+<BaseLayout
+  title={PAGE_COPY.comparisons.title}
+  description={PAGE_COPY.comparisons.description}
+  canonical={path}
+  titleSuffix={UI.siteName}
+  jsonLd={jsonLd}
+  ogType="website"
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <header class="max-w-2xl">
+    <h1 class="text-3xl font-bold tracking-tight text-white md:text-4xl">{PAGE_COPY.comparisons.heading}</h1>
+    <p class="mt-4 text-base leading-relaxed text-ink-400">{PAGE_COPY.comparisons.intro}</p>
+  </header>
+
+  <div class="mt-10 grid gap-4 sm:grid-cols-2">
+    {
+      comparisons.map((c) => {
+        const a = byId.get(c.data.aId);
+        const b = byId.get(c.data.bId);
+        return (
+          <a
+            href={routes.comparison(c.id)}
+            class="group flex flex-col rounded-xl border border-ink-800 bg-ink-900/40 p-5 transition-colors hover:border-ink-600 hover:bg-ink-900"
+          >
+            <div class="flex items-center gap-2 font-mono text-[0.6875rem] text-ink-600">
+              <span>{a?.data.nameShort ?? c.data.aId}</span>
+              <span aria-hidden="true">vs</span>
+              <span>{b?.data.nameShort ?? c.data.bId}</span>
+            </div>
+            <h2 class="mt-2 text-sm font-semibold leading-snug text-ink-100 group-hover:text-white">
+              {c.data.h1}
+            </h2>
+            <RichText as="p" class="mt-2 line-clamp-3 text-xs leading-relaxed text-ink-500" text={c.data.answer} />
+          </a>
+        );
+      })
+    }
+  </div>
+
+  {comparisons.length === 0 && <p class="mt-10 text-sm text-ink-500">{UI.empty.noComparisons}</p>}
+</BaseLayout>

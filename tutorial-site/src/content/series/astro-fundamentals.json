@@ -1,0 +1,19 @@
+{
+  "slug": "astro-fundamentals",
+  "topic": "astro",
+  "seo": {
+    "title": "Astro Fundamentals: A Five-Part Learning Path",
+    "description": "A sequenced path through Astro: install and deploy, file-based routing, typed content collections, dynamic routes, and sitemaps. Each part builds on the last."
+  },
+  "h1": "Astro Fundamentals: A Linear Learning Path",
+  "intro": "Most Astro tutorials teach features in isolation, which is why so many people can follow one and still cannot build a site. This path is ordered by dependency: each part assumes only what the previous parts covered. Start at part one even if you think you can skip it — the build-time execution model in part one is what makes parts three and four understandable rather than memorized.",
+  "itemIds": [
+    "getting-started-with-astro",
+    "create-dynamic-routes",
+    "content-collections-tutorial",
+    "add-a-sitemap"
+  ],
+  "pillarId": "content-collections-tutorial",
+  "tags": ["beginner", "routing", "content-collections"],
+  "updated": "2026-10-30"
+}

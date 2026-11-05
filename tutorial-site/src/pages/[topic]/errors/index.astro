@@ -1,0 +1,144 @@
+---
+/**
+ * ERROR INDEX — /{topic}/errors/
+ *
+ * Grouped by category, sorted inside each group by reference count.
+ * Reference count is computed by scanning every tutorial's `errorIds` and
+ * per-step `errorIds`, so "how often does this actually happen" is derived
+ * from the content rather than guessed.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import { getTopics, getErrorsByTopic, getTutorialsByTopic } from '@/lib/content';
+import { breadcrumbNode, collectionPageNode, itemListNode } from '@/lib/jsonld';
+import RichText from '@/components/content/RichText.astro';
+
+export async function getStaticPaths() {
+  const topics = await getTopics();
+  return topics
+    .filter((t) => t.data.kind === 'primary')
+    .map((t) => ({ params: { topic: t.id }, props: { topic: t } }));
+}
+
+const { topic } = Astro.props;
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+const topicName = topic.data.nameShort ?? topic.data.name;
+const path = routes.errors(topic.id);
+
+const errors = await getErrorsByTopic(topic.id);
+const tutorials = await getTutorialsByTopic(topic.id);
+
+/* Reference count, computed once. */
+const refCount = new Map<string, number>();
+for (const t of tutorials) {
+  const ids = new Set([...t.data.errorIds, ...t.data.steps.flatMap((s) => s.errorIds)]);
+  for (const id of ids) refCount.set(id, (refCount.get(id) ?? 0) + 1);
+}
+
+const order = ['build', 'config', 'deploy', 'runtime', 'types', 'network', 'other'];
+
+const groups = order
+  .map((cat) => ({
+    cat,
+    label: UI.errorCategory[cat] ?? cat,
+    items: errors
+      .filter((e) => e.data.category === cat)
+      .sort(
+        (a, b) =>
+          (refCount.get(b.id) ?? 0) - (refCount.get(a.id) ?? 0) || a.id.localeCompare(b.id)
+      ),
+  }))
+  .filter((g) => g.items.length > 0);
+
+const crumbs = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: topicName, path: routes.topic(topic.id) },
+  { name: UI.section.errors, path },
+];
+
+const jsonLd = [
+  breadcrumbNode({ origin }, crumbs),
+  collectionPageNode({ origin }, {
+    name: `${topicName} errors and fixes`,
+    description: `Every documented ${topicName} error, grouped by category and sorted by how often it comes up in the guides.`,
+    path,
+    updated: topic.data.updated,
+  }),
+  itemListNode({ origin }, {
+    name: `${topicName} errors`,
+    path,
+    items: errors.map((e) => ({ name: e.data.message, path: routes.error(topic.id, e.id) })),
+  }),
+];
+---
+
+<BaseLayout
+  title={`${topicName} Errors and How to Fix Them`}
+  description={`A categorized index of ${topicName} error messages, each with its cause and a tested fix. Sorted by how often each one appears across the guides.`}
+  canonical={path}
+  noindex={topic.data.status === 'draft'}
+  titleSuffix={topicName}
+  jsonLd={jsonLd}
+  ogType="website"
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <header class="max-w-2xl">
+    <h1 class="text-3xl font-bold tracking-tight text-white md:text-4xl">
+      {topicName} Errors
+    </h1>
+    <p class="mt-4 text-base leading-relaxed text-ink-400">
+      Every error documented on this site, one page each. Grouped by category, and ordered inside
+      each group by how often the guides actually run into it.
+    </p>
+  </header>
+
+  {
+    groups.map((g) => (
+      <section class="mt-12">
+        <div class="flex items-baseline justify-between gap-4 border-b border-ink-800 pb-3">
+          <h2 class="text-lg font-semibold text-ink-100">{g.label}</h2>
+          <span class="font-mono text-xs text-ink-600">{g.items.length}</span>
+        </div>
+        <ul class="divide-y divide-ink-800/70">
+          {g.items.map((e) => {
+            const n = refCount.get(e.id) ?? 0;
+            return (
+              <li>
+                <a
+                  href={routes.error(topic.id, e.id)}
+                  class="group flex flex-col gap-1.5 py-4 transition-colors hover:bg-ink-900/40 sm:px-2"
+                >
+                  <span class="flex items-start justify-between gap-4">
+                    <code class="font-mono text-[0.8125rem] leading-snug text-ink-200 group-hover:text-white">
+                      {e.data.message}
+                    </code>
+                    {n > 0 && (
+                      <span class="shrink-0 font-mono text-[0.625rem] text-ink-600">
+                        in {n} {n === 1 ? 'guide' : 'guides'}
+                      </span>
+                    )}
+                  </span>
+                  <RichText class="text-sm leading-relaxed text-ink-500" text={e.data.answer} />
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))
+  }
+
+  {
+    errors.length === 0 && <p class="mt-10 text-sm text-ink-500">{UI.empty.noErrors}</p>
+  }
+
+  <div class="mt-14">
+    <a href={routes.topic(topic.id)} class="text-sm text-accent hover:underline">
+      &larr; {UI.cta.backToTopic}
+    </a>
+  </div>
+</BaseLayout>

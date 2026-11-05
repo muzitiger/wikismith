@@ -1,0 +1,188 @@
+{
+  "slug": "content-collections-invalid-frontmatter",
+  "topic": "astro",
+  "seo": {
+    "title": "Fix: InvalidContentEntryFrontmatterError in Astro",
+    "description": "Astro fails the build with InvalidContentEntryFrontmatterError when a collection file does not match its Zod schema. Here is the exact fix, cause by cause."
+  },
+  "h1": "Astro Content Collections: Invalid Frontmatter Error, Fixed",
+  "message": "InvalidContentEntryFrontmatterError",
+  "code": "InvalidContentEntryFrontmatterError",
+  "answer": "One field in the file's frontmatter is missing or has the wrong type. The error message names the file and the field path — open that file, fix that single field, and rebuild.",
+  "symptom": "The build or dev server stops with an error whose first line reads InvalidContentEntryFrontmatterError, followed by the absolute path of a Markdown or JSON file and a chain like \"description\" Required. Everything else in the project compiles fine, and the failing file looks correct at a glance.",
+  "category": "build",
+  "affected": {
+    "versions": ">=3.0.0",
+    "platforms": [
+      "all"
+    ]
+  },
+  "causes": [
+    {
+      "title": "A required field is missing from the frontmatter",
+      "explain": "The schema declares the field without `.optional()` and without `.default()`, so every file must provide it. This is the most common cause by a wide margin, and it usually appears after someone adds a new required field to an existing collection with a hundred files already written.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Read the field path in the error",
+          "body": [
+            {
+              "type": "p",
+              "text": "The error prints the file path and then the failing field, joined by a dash. Long messages wrap across lines, so read to the end rather than scanning the first line."
+            },
+            {
+              "type": "code",
+              "lang": "text",
+              "code": "InvalidContentEntryFrontmatterError\n  src/content/blog/hello-world.md\n  \"description\" Required"
+            }
+          ],
+          "expected": "You have the file path and the single field name that failed.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Add the field to that file",
+          "body": [
+            {
+              "type": "p",
+              "text": "Open the file and add the field to the frontmatter block. If the schema bounds its length, satisfy the bound now — a short description fails the same way as a missing one."
+            }
+          ],
+          "expected": "The frontmatter block contains the field with a value that satisfies the schema.",
+          "minutes": 1
+        },
+        {
+          "n": 3,
+          "title": "Rebuild to confirm",
+          "body": [
+            {
+              "type": "p",
+              "text": "Re-run the build. Astro validates every entry, so a second failure usually means a second file — fix them one at a time rather than guessing."
+            }
+          ],
+          "expected": "The build completes and the same error does not reappear.",
+          "verify": {
+            "cmd": "npx astro build",
+            "expect": "Complete!"
+          },
+          "minutes": 1
+        }
+      ]
+    },
+    {
+      "title": "The field exists but has the wrong type",
+      "explain": "YAML is unquoted by default, and it does surprising things with values that look numeric or boolean. `pubDate: 2026-03-14` becomes a Date, but `version: 1.10` becomes the number 1.1, and `draft: no` becomes a boolean while `draft: \"no\"` stays a string. A schema expecting a string rejects all of these.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compare the declared type against the written value",
+          "body": [
+            {
+              "type": "p",
+              "text": "Look at the schema for the failing field, then at the raw text in the file. The error message includes the received type, which is the fastest way to spot the mismatch — it will say something like `Expected string, received number`."
+            }
+          ],
+          "expected": "You know what type the schema wants and what type YAML actually produced.",
+          "minutes": 2
+        },
+        {
+          "n": 2,
+          "title": "Quote the value or coerce it in the schema",
+          "body": [
+            {
+              "type": "p",
+              "text": "Either wrap the value in quotes in the file, or change the schema to accept what YAML produces. Quoting is the right call for single files; coercion is the right call when the same pattern appears across many."
+            },
+            {
+              "type": "code",
+              "lang": "yaml",
+              "code": "---\n# Wrong: YAML reads this as the number 1.1\nversion: 1.10\n\n# Right: stays a string\nversion: \"1.10\"\n---"
+            }
+          ],
+          "expected": "The value type matches the schema, or the schema now coerces it.",
+          "minutes": 2
+        },
+        {
+          "n": 3,
+          "title": "Re-sync the types",
+          "body": [
+            {
+              "type": "p",
+              "text": "If you changed the schema rather than the file, regenerate types so your editor stops reporting the old shape."
+            }
+          ],
+          "expected": "No errors from sync, and the build passes.",
+          "verify": {
+            "cmd": "npx astro sync",
+            "expect": "Synced content"
+          },
+          "minutes": 1
+        }
+      ]
+    },
+    {
+      "title": "The file is in the wrong collection",
+      "explain": "Two collections can share a directory name pattern, or a file can be dropped into a folder whose schema it was never written for. A blog post moved into a `docs` folder fails against the docs schema even though the post itself is valid.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check which loader owns that directory",
+          "body": [
+            {
+              "type": "p",
+              "text": "Match the file's parent directory against the `base` values in `src/content.config.ts`. If two loaders overlap, every file in the overlap is validated twice, once per schema."
+            }
+          ],
+          "expected": "You know exactly which collection the file belongs to.",
+          "minutes": 2
+        },
+        {
+          "n": 2,
+          "title": "Move the file or align the schema",
+          "body": [
+            {
+              "type": "p",
+              "text": "If it belongs elsewhere, move it. If it genuinely belongs here, the schema is wrong and should be widened — do not add `.optional()` to every field just to silence the error."
+            }
+          ],
+          "expected": "The file lives in exactly one collection directory.",
+          "minutes": 3
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "cmd": "npx astro build",
+    "expect": "Complete! with no InvalidContentEntryFrontmatterError"
+  },
+  "prevention": [
+    "Add the new field with a `.default()` first, ship that, then make it required in a later change once existing files have been backfilled.",
+    "Quote any frontmatter value that is meant to be a string but looks like a number or a boolean.",
+    "Run `npx astro sync` before committing — it validates the whole collection in under a second and catches this before CI does."
+  ],
+  "seeAlsoIds": [
+    "content-collections-empty-collection",
+    "getcollection-returns-empty-array"
+  ],
+  "faq": [
+    {
+      "q": "Why does the error show an absolute path instead of a relative one?",
+      "a": "Astro reports the resolved filesystem path so the message is unambiguous when several projects or a monorepo share a terminal. Read the last two segments — that is enough to identify the file."
+    },
+    {
+      "q": "The frontmatter looks correct but it still fails. What else could it be?",
+      "a": "Check for invisible issues: a BOM at the start of the file, tabs instead of spaces in the YAML indentation, or a second frontmatter block later in the body. All three produce a schema error on a field that appears fine."
+    },
+    {
+      "q": "Can I skip schema validation entirely?",
+      "a": "Yes, by omitting `schema` from the collection definition. That also removes all the type safety, so the trade is real — you lose autocomplete and the build-time guarantee that motivated the collection in the first place."
+    }
+  ],
+  "tags": [
+    "content-collections",
+    "build-errors",
+    "yaml"
+  ],
+  "published": "2026-03-02",
+  "updated": "2026-10-20"
+}

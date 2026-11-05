@@ -1,0 +1,180 @@
+{
+  "slug": "sitemap-not-generated",
+  "topic": "astro",
+  "seo": {
+    "title": "Astro Sitemap Not Generated: The Missing site Config",
+    "description": "The sitemap integration runs but writes no file. Almost always the site field is unset in astro.config. Here is the check and the fix."
+  },
+  "h1": "Astro Sitemap Integration Produces No File",
+  "message": "No sitemap-index.xml in dist after build",
+  "answer": "The site field in astro.config is unset, so the integration cannot build absolute URLs and writes nothing. Set site to your production origin and rebuild.",
+  "symptom": "The integration is installed, listed in the config, and the build succeeds — but dist contains no sitemap file. No warning is printed. Deploying produces a 404 at /sitemap-index.xml.",
+  "category": "config",
+  "affected": {
+    "versions": ">=3.0.0",
+    "platforms": [
+      "all"
+    ]
+  },
+  "causes": [
+    {
+      "title": "site is undefined in the Astro config",
+      "explain": "The sitemaps protocol requires absolute URLs. Without `site`, Astro has no origin to prepend, so the integration cannot produce valid entries and skips writing the file entirely rather than emitting relative URLs.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check whether site is set",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "grep -n \"site\" astro.config.mjs"
+            }
+          ],
+          "expected": "You see either a site line with a URL or no site line at all.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Set site to the production origin",
+          "body": [
+            {
+              "type": "p",
+              "text": "Add the field with your production origin, without a trailing slash. Do not point it at localhost or a staging host."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "code": "export default defineConfig({\n  site: 'https://example.com',\n  integrations: [sitemap()],\n});"
+            }
+          ],
+          "expected": "astro.config.mjs contains a production origin in site.",
+          "minutes": 2
+        },
+        {
+          "n": 3,
+          "title": "Rebuild and confirm the file exists",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "npx astro build && ls dist | grep sitemap"
+            }
+          ],
+          "expected": "sitemap-index.xml and at least one sitemap-N.xml appear in dist.",
+          "verify": {
+            "cmd": "ls dist | grep sitemap",
+            "expect": "sitemap-index.xml"
+          },
+          "minutes": 2
+        }
+      ]
+    },
+    {
+      "title": "The filter option excludes every URL",
+      "explain": "A `filter` callback that returns false for everything produces an empty sitemap, which the integration then omits rather than writing a zero-URL file. A filter copied from another project is the usual source.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Log what the filter is doing",
+          "body": [
+            {
+              "type": "p",
+              "text": "Temporarily remove the filter and rebuild. If a sitemap appears, the filter is the cause."
+            }
+          ],
+          "expected": "You know whether the filter is responsible.",
+          "minutes": 2
+        },
+        {
+          "n": 2,
+          "title": "Rewrite the filter to be inclusive",
+          "body": [
+            {
+              "type": "p",
+              "text": "Start from `return true` and add exclusions one at a time, verifying the file still exists after each change. Building an include-list from scratch usually excludes more than intended."
+            }
+          ],
+          "expected": "The filter excludes only the pages you named.",
+          "minutes": 4
+        }
+      ]
+    },
+    {
+      "title": "The site is deployed to a subpath",
+      "explain": "When the site lives under a path prefix, `site` alone is not enough — the `base` option must also be set, or the generated URLs point at the domain root and the sitemap is silently dropped.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the deployment root",
+          "body": [
+            {
+              "type": "p",
+              "text": "Open the deployed index page and check whether asset URLs start at `/` or at `/<prefix>/`. That tells you whether a base path is in play."
+            }
+          ],
+          "expected": "You know whether the site is served from a subpath.",
+          "minutes": 2
+        },
+        {
+          "n": 2,
+          "title": "Set base alongside site",
+          "body": [
+            {
+              "type": "code",
+              "lang": "js",
+              "code": "export default defineConfig({\n  site: 'https://example.com',\n  base: '/docs',\n  integrations: [sitemap()],\n});"
+            }
+          ],
+          "expected": "Generated sitemap URLs include the prefix.",
+          "minutes": 3
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "cmd": "ls dist | grep sitemap",
+    "expect": "sitemap-index.xml and sitemap-0.xml"
+  },
+  "prevention": [
+    "Set `site` before adding the integration, not after — it is the one field the integration cannot infer.",
+    "Build the sitemap filter from an inclusive default and subtract, never from a narrow include-list.",
+    "Set `base` at the same time as `site` if the deployment is not at the domain root."
+  ],
+  "seeAlsoIds": [
+    "content-collections-empty-collection"
+  ],
+  "faq": [
+    {
+      "q": "Why is there no warning when the sitemap is skipped?",
+      "a": "The integration treats a missing origin as a misconfiguration it cannot recover from and exits quietly. It is worth adding a build assertion in CI that the file exists after build."
+    },
+    {
+      "q": "Does the sitemap include pages excluded by noindex?",
+      "a": "Yes, unless you filter them. The integration does not read page metadata, so a noindex page still lands in the sitemap and generates a Search Console error."
+    },
+    {
+      "q": "Can I have more than one sitemap?",
+      "a": "The integration already splits output when you exceed the per-file limits, writing sitemap-0.xml, sitemap-1.xml and so on, all referenced from the index. You do not need to configure that."
+    },
+    {
+      "q": "Does the integration work without a site value if I use a relative base?",
+      "a": "No. The sitemaps protocol requires absolute URLs, so there is no valid relative form it could fall back to. Setting site is the only fix; there is no configuration flag that makes a relative sitemap acceptable."
+    },
+    {
+      "q": "My sitemap is generated but Search Console reports it cannot be fetched. Why?",
+      "a": "Usually a robots.txt rule, a host-level block on .xml files, or a redirect chain. Fetch the URL with curl and check for a 200 rather than for the file existing in the build output — those two things fail independently."
+    },
+    {
+      "q": "Should the sitemap include the 404 page?",
+      "a": "No. It is a system response, not content, and listing it invites crawlers to treat it as a normal URL. The integration normally omits it, but confirm rather than assume."
+    }
+  ],
+  "tags": [
+    "seo",
+    "configuration",
+    "build-errors"
+  ],
+  "published": "2026-03-16",
+  "updated": "2026-10-23"
+}

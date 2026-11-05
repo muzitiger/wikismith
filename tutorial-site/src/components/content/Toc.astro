@@ -1,0 +1,34 @@
+---
+/**
+ * B9 Toc — table of contents built from the page's own H2s.
+ *
+ * Built from the same `sections` array the page renders, not by parsing HTML,
+ * so the TOC can't drift from the headings. Sticky on desktop, collapsed on
+ * mobile (details element, zero JS).
+ */
+interface Props {
+  sections: Array<{ id: string; label: string }>;
+}
+
+const { sections } = Astro.props;
+---
+
+{sections.length > 2 && (
+  <aside class="hidden xl:block">
+    <nav class="sticky top-24 text-sm" aria-label="On this page">
+      <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-500">On this page</p>
+      <ul class="space-y-1 border-l border-ink-800">
+        {sections.map((s) => (
+          <li>
+            <a
+              href={`#${s.id}`}
+              class="-ml-px block border-l border-transparent py-1 pl-3 pr-2 text-ink-500 transition-colors hover:border-accent/60 hover:text-ink-200"
+            >
+              {s.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </aside>
+)}

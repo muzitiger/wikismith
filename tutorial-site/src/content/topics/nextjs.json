@@ -1,0 +1,26 @@
+{
+  "slug": "nextjs",
+  "name": "Next.js",
+  "nameShort": "Next.js",
+  "tagline": "The React framework for full-stack web applications",
+  "seo": {
+    "title": "Next.js: Overview, Strengths, and Trade-offs",
+    "description": "What Next.js is, where it genuinely wins, and when a lighter framework is the better call. Written as a reference for side-by-side comparisons."
+  },
+  "kind": "stub",
+  "status": "live",
+  "intro": "Next.js is a React framework with server-side rendering, static generation, API routes, and a file-based router, all maintained by Vercel. It has become the default answer for React teams that want one framework covering rendering, routing, and deployment. Its App Router introduced React Server Components as the primary data-fetching model, which shifted a large amount of work back to the server.\n\nThis page is a reference entry, not a tutorial set. It exists so that side-by-side comparisons have a stable place to point, and so that migration guides have a source to describe accurately. If you are deciding between frameworks rather than learning this one, start with the comparison index.",
+  "category": "Full-stack React framework",
+  "currentVersion": "15.5",
+  "officialUrl": "https://nextjs.org",
+  "docsUrl": "https://nextjs.org/docs",
+  "color": "#000000",
+  "features": [
+    { "id": "app-router", "label": "App Router" },
+    { "id": "server-components", "label": "Server Components" },
+    { "id": "api-routes", "label": "API Routes" }
+  ],
+  "rivalIds": ["astro", "sveltekit", "nuxt"],
+  "faq": [],
+  "updated": "2026-11-01"
+}

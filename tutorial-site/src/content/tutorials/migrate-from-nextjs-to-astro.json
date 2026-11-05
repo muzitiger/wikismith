@@ -1,0 +1,396 @@
+{
+  "slug": "migrate-from-nextjs-to-astro",
+  "topic": "astro",
+  "template": "migration",
+  "seo": {
+    "title": "Migrate from Next.js to Astro: A Step-by-Step Guide",
+    "description": "Move a content-heavy Next.js site to Astro without losing rankings: concept mapping, redirects, and what genuinely breaks. Includes the SEO parity checklist."
+  },
+  "h1": "How to Migrate from Next.js to Astro Without Losing Rankings",
+  "answer": "Most of a content-heavy Next.js site maps directly: pages become .astro files, getStaticProps becomes frontmatter data fetching, and next/link disappears in favour of plain anchors. The migration risk is not code — it is URL and metadata parity.",
+  "excerpt": "The concept mapping table, the redirect rules that actually matter, and the verification pass that catches what a build cannot.",
+  "primaryKeyword": "migrate from nextjs to astro",
+  "secondaryKeywords": [
+    "nextjs to astro migration",
+    "convert nextjs to astro",
+    "move gatsby blog to astro",
+    "astro migration guide"
+  ],
+  "difficulty": "advanced",
+  "totalMinutes": 120,
+  "testedWith": {
+    "version": "5.18.2",
+    "date": "2026-10-29",
+    "environment": "macOS 15.6 / Node 22.11"
+  },
+  "prerequisites": [
+    {
+      "text": "An existing Next.js site that builds successfully",
+      "kind": "tool",
+      "required": true,
+      "verify": {
+        "cmd": "npx next build",
+        "expect": "Compiled successfully"
+      }
+    },
+    {
+      "text": "Access to the current production URL structure and its analytics",
+      "kind": "account",
+      "required": true
+    },
+    {
+      "text": "A staging deployment target for the new build",
+      "kind": "account",
+      "required": true
+    },
+    {
+      "text": "Familiarity with React components and JSX",
+      "kind": "knowledge",
+      "required": true
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "title": "Inventory what the current site actually serves",
+      "subSteps": [
+        {
+          "title": "Export every indexed URL",
+          "text": "Start from what search engines know, not from what your repo contains. They are rarely the same list."
+        },
+        {
+          "title": "Note which routes are dynamic",
+          "text": "Dynamic routes are the ones that need getStaticPaths and the ones most likely to change URL shape."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Before touching code, get the ground truth. Export the URL list from Search Console or your sitemap, and separately list every route in the Next.js app directory. The difference between those two lists is where migration bugs hide.\n\nCommon discrepancies: URLs indexed from an older structure that still 200 via a catch-all, query-parameter permutations that got indexed, and pages that exist in the repo but were never linked. Each one matters, because a URL that currently ranks and returns 404 after migration is a direct ranking loss."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "code": "# Current URL inventory from the live sitemap\ncurl -s https://example.com/sitemap.xml | grep -o '<loc>[^<]*' | sed 's/<loc>//' > urls-before.txt\nwc -l urls-before.txt"
+        },
+        {
+          "type": "note",
+          "tone": "warn",
+          "text": "Save this file. You will diff against it in step 5, and re-deriving it after the old site is down is not possible."
+        }
+      ],
+      "expected": "A text file listing every currently indexed URL, saved outside the repo.",
+      "minutes": 15,
+      "errorIds": []
+    },
+    {
+      "n": 2,
+      "title": "Map Next.js concepts to their Astro equivalents",
+      "subSteps": [
+        {
+          "title": "Data fetching moves into frontmatter",
+          "text": "getStaticProps disappears; the data call happens at the top of the .astro file and runs at build time."
+        },
+        {
+          "title": "Routing moves to the filesystem",
+          "text": "The pages directory convention is similar, but dynamic segments are bracketed filenames plus getStaticPaths."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "The mapping is mostly mechanical. Work through it as a table rather than file by file, so you build the pattern once and then apply it."
+        },
+        {
+          "type": "table",
+          "caption": "Concept mapping",
+          "headers": [
+            "Next.js",
+            "Astro",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "`pages/index.tsx`",
+              "`src/pages/index.astro`",
+              "One-to-one"
+            ],
+            [
+              "`getStaticProps`",
+              "Frontmatter code",
+              "Runs at build, no wrapper"
+            ],
+            [
+              "`getStaticPaths`",
+              "`getStaticPaths`",
+              "Same name, same job"
+            ],
+            [
+              "`next/link`",
+              "`<a href>`",
+              "No client router by default"
+            ],
+            [
+              "`next/image`",
+              "`<Image>` from astro:assets",
+              "Needs the assets integration"
+            ],
+            [
+              "`_app.tsx`",
+              "`src/layouts/BaseLayout.astro`",
+              "Explicit import, not automatic"
+            ],
+            [
+              "`next/head`",
+              "`<head>` in the layout",
+              "Pass SEO props down"
+            ],
+            [
+              "CSS Modules",
+              "Scoped `<style>` or Tailwind",
+              "Both supported"
+            ],
+            [
+              "API routes",
+              "`src/pages/api/*.ts`",
+              "Only with an SSR adapter"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Two rows deserve attention. `next/image` has no drop-in equivalent — Astro's `<Image>` needs local or configured remote images and produces its own optimized output, so image markup gets rewritten rather than ported. And `_app.tsx` has no automatic counterpart: in Astro you import the layout in every page, which is more explicit and more typing."
+        }
+      ],
+      "expected": "You have a written mapping for every pattern used in the existing codebase, including any that are not in the table.",
+      "minutes": 25,
+      "errorIds": []
+    },
+    {
+      "n": 3,
+      "title": "Port shared layout and metadata first",
+      "subSteps": [
+        {
+          "title": "Do the layout before any page",
+          "text": "Every page depends on it, and porting pages against a half-built layout means redoing them."
+        },
+        {
+          "title": "Centralize the head",
+          "text": "Title, description, canonical and JSON-LD should come from one component, not from each page."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Rebuild the layout as a single `.astro` file that takes SEO props. This is the highest-leverage file in the migration: if metadata generation is centralized here, every ported page inherits correct tags without individual attention."
+        },
+        {
+          "type": "code",
+          "lang": "astro",
+          "filename": "src/layouts/BaseLayout.astro",
+          "code": "---\ninterface Props {\n  title: string;\n  description: string;\n  canonical?: string;\n  noindex?: boolean;\n}\nconst { title, description, canonical, noindex = false } = Astro.props;\nconst canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).href;\n---\n<!doctype html>\n<html lang=\"en\">\n  <head>\n    <title>{title}</title>\n    <meta name=\"description\" content={description} />\n    <link rel=\"canonical\" href={canonicalUrl} />\n    {noindex && <meta name=\"robots\" content=\"noindex, nofollow\" />}\n  </head>\n  <body><slot /></body>\n</html>\n"
+        },
+        {
+          "type": "p",
+          "text": "Set `site` in `astro.config.mjs` at this point. `Astro.site` is what makes `new URL(pathname, Astro.site)` produce an absolute canonical, and every page depends on it."
+        }
+      ],
+      "expected": "A layout component renders correct title, description and canonical for a test page.",
+      "minutes": 20,
+      "errorIds": [
+        "sitemap-not-generated"
+      ]
+    },
+    {
+      "n": 4,
+      "title": "Port pages, keeping the URL shape identical",
+      "subSteps": [
+        {
+          "title": "Preserve trailing-slash behaviour",
+          "text": "If the old site served /about/ with a slash, the new one must too, or every URL takes a redirect hop."
+        },
+        {
+          "title": "Port content before interactivity",
+          "text": "Static content is the bulk of the SEO value. Client components can come later as islands."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Port in order of traffic, not in order of the file tree. The pages that currently rank are the ones where a mistake costs the most, and porting them first gives you the longest verification window.\n\nKeep the URL shape stable while porting. If the old Next.js site served `/blog/post-name/`, the Astro route must produce `/blog/post-name/`. Change the shape only in a deliberate, separate step where you also write the redirects."
+        },
+        {
+          "type": "code",
+          "lang": "astro",
+          "filename": "src/pages/blog/[slug].astro",
+          "code": "---\nimport BaseLayout from '@/layouts/BaseLayout.astro';\nimport { getCollection, render } from 'astro:content';\n\nexport async function getStaticPaths() {\n  const posts = await getCollection('blog');\n  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));\n}\n\nconst { post } = Astro.props;\nconst { Content } = await render(post);\n---\n\n<BaseLayout title={post.data.title} description={post.data.description}>\n  <article>\n    <h1>{post.data.title}</h1>\n    <Content />\n  </article>\n</BaseLayout>\n"
+        },
+        {
+          "type": "p",
+          "text": "Set `trailingSlash: 'always'` in the config if the old site used trailing slashes, and `'never'` if it did not. Getting this wrong does not break the site — it adds a 301 to every single URL, which is a slow-acting crawl-budget problem rather than an obvious failure."
+        }
+      ],
+      "expected": "Each ported page produces the same URL path and the same title/description as before.",
+      "minutes": 45,
+      "errorIds": [
+        "getstaticpaths-missing-param"
+      ]
+    },
+    {
+      "n": 5,
+      "title": "Write redirects and verify URL parity",
+      "subSteps": [
+        {
+          "title": "Diff the two URL lists",
+          "text": "Every URL in urls-before.txt must exist in the new build or appear in the redirect map."
+        },
+        {
+          "title": "Redirect at the host, not the app",
+          "text": "A static build cannot emit a 301. The redirect map belongs in the host config."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Build the new site and diff its URL list against the inventory from step 1. Any URL present before and absent now is either a porting miss or needs a redirect."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "code": "npx astro build\nfind dist -name 'index.html' | sed 's|^dist||; s|/index.html$|/|' | sort > urls-after.txt\n\n# URLs that existed before and are missing now\ncomm -23 urls-before.txt urls-after.txt"
+        },
+        {
+          "type": "p",
+          "text": "For each missing URL, decide: port it, or redirect it. Redirects that matter are the ones with inbound links or current rankings — a 301 preserves the signal, a 404 discards it. Redirects for URLs nobody linked to are optional and add config noise."
+        },
+        {
+          "type": "code",
+          "lang": "toml",
+          "filename": "public/_redirects",
+          "code": "/old-blog-path/*  /blog/:splat  301\n/legacy/page        /new-page/    301\n"
+        },
+        {
+          "type": "note",
+          "tone": "danger",
+          "text": "Do not redirect the homepage or high-traffic category pages without checking that the destination serves equivalent content. A 301 to a generic page is treated as a soft 404 and loses the ranking anyway."
+        }
+      ],
+      "expected": "Every previously indexed URL now returns 200 or a single 301 to an equivalent page.",
+      "verify": {
+        "cmd": "comm -23 urls-before.txt urls-after.txt | wc -l",
+        "expect": "0 (or only URLs you deliberately redirected)"
+      },
+      "minutes": 30,
+      "errorIds": []
+    },
+    {
+      "n": 6,
+      "title": "Run the metadata and structured data parity check",
+      "subSteps": [
+        {
+          "title": "Compare titles across the two sites",
+          "text": "A changed title is a ranking signal change, not a cosmetic one."
+        },
+        {
+          "title": "Re-validate JSON-LD",
+          "text": "Structured data often gets dropped in a migration because it lived in a Next.js component that was not ported."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Code that builds is not the same as content that ranks. This pass is about metadata, and it catches the most common migration regression: everything renders, and the titles are subtly different.\n\nSpider the staging deployment and diff against the live site on title, description, canonical and H1. A simple script over both sitemaps is enough — you are looking for systematic differences, not auditing every page."
+        },
+        {
+          "type": "list",
+          "ordered": true,
+          "items": [
+            "Every page returns a title and a description of similar length to before.",
+            "Canonical tags point at the production origin, not the staging one.",
+            "The sitemap lists the same URL count as urls-before.txt.",
+            "JSON-LD blocks still exist and still validate.",
+            "No page is accidentally noindexed by a leftover draft flag."
+          ]
+        },
+        {
+          "type": "p",
+          "text": "That last item causes more migration damage than any code bug. A `draft: true` default copied into the new schema will quietly deindex the whole site, and nothing in the build output will tell you."
+        }
+      ],
+      "expected": "Titles, descriptions, canonicals and structured data match the pre-migration site on every high-traffic page.",
+      "minutes": 20,
+      "errorIds": [
+        "content-collections-invalid-frontmatter"
+      ]
+    }
+  ],
+  "body": [
+    {
+      "type": "h2",
+      "text": "What genuinely does not survive"
+    },
+    {
+      "type": "p",
+      "text": "If you searched for how to migrate from Next.js to Astro and landed here, the short version is that the work is mostly mechanical and the risk is almost entirely in URLs and metadata. Code ports cleanly. Rankings do not forgive a changed path, a dropped canonical tag, or a schema that quietly stopped rendering.\n\nA note on the name: the project is written Next.js, but most people search nextjs without the dot. Both spellings appear throughout this guide for that reason, and neither is a typo."
+    },
+    {
+      "type": "p",
+      "text": "Being honest about the losses is more useful than a checklist that implies a clean swap. Three things change materially.\n\n**Client-side state across navigation.** Next.js ships a client router; Astro does not by default. If your site relied on a React context provider wrapping every page, that pattern has no direct equivalent — the state stops existing between page loads. This is fine for content sites and is the actual reason a migration is worthwhile; it is a real feature loss for application-shaped pages.\n\n**Incremental static regeneration.** Next.js can revalidate a page in the background without a full rebuild. Astro's static output cannot. The replacement is a rebuild triggered by a CMS webhook, which works well but rebuilds the whole site rather than one page.\n\n**Middleware-level routing.** Next.js middleware runs on every request. Without an SSR adapter, Astro has nothing at request time. Redirects move to host config, A/B tests move to the edge provider, and auth gating stops being possible on static output."
+    },
+    {
+      "type": "h2",
+      "text": "When this migration is a bad idea"
+    },
+    {
+      "type": "p",
+      "text": "If more than half your pages need per-request data — a logged-in dashboard, a personalized feed, a multi-tenant app — stop. Rebuilding that on Astro means adding an SSR adapter, at which point you have a smaller ecosystem and the same server requirement. You would be paying the migration cost to arrive at a worse version of where you started.\n\nThe migration pays off when the site is content-led: marketing pages, documentation, a blog, a changelog. Those are pages where the JavaScript framework was never doing anything, and removing it is a straight win on bytes shipped and time to first paint."
+    },
+    {
+      "type": "h2",
+      "text": "Sequencing the cutover"
+    },
+    {
+      "type": "p",
+      "text": "Do not swap DNS in one step. Deploy the new build to a staging host, verify the URL diff there, then point production at it while the old deployment stays reachable for a week. If something is wrong, rolling back is a config change rather than a rebuild.\n\nAfter cutover, watch three things for two weeks: Search Console coverage errors, the count of indexed pages, and organic sessions on your top ten URLs. A drop in indexed page count within 48 hours almost always means a redirect or canonical mistake, and it is much cheaper to find it on day one than on day thirty."
+    }
+  ],
+  "errorIds": [
+    "getstaticpaths-missing-param",
+    "sitemap-not-generated",
+    "content-collections-invalid-frontmatter"
+  ],
+  "faq": [
+    {
+      "q": "Do I have to rewrite all my React components?",
+      "a": "No. Astro can render React components directly through the React integration, so interactive pieces can be reused as islands. What you cannot reuse is anything relying on Next.js specifics: next/link, next/image, next/head, and the data-fetching functions."
+    },
+    {
+      "q": "Will I lose rankings during the migration?",
+      "a": "Not if URLs, titles, canonicals and internal links stay stable. Rankings drop when a migration changes the URL structure without redirects, or when structured data and metadata silently disappear. The parity check in step 6 is what prevents that."
+    },
+    {
+      "q": "How long does this take for a 200-page site?",
+      "a": "The layout and content collection setup is a day. Porting is roughly two to five pages an hour once the patterns are established, so a 200-page site is around a week of focused work, plus a week of watching post-cutover metrics."
+    },
+    {
+      "q": "Can I run both frameworks at once during the transition?",
+      "a": "Yes, at the host level — route some paths to the old deployment and some to the new one. It works but complicates redirects, since a URL can move twice. A clean cutover with a rollback window is usually less error-prone."
+    },
+    {
+      "q": "What about my API routes?",
+      "a": "Astro supports API endpoints but only emits them when you add an SSR adapter. If your API routes are what makes the app work, that is a strong signal this migration is not the right move."
+    }
+  ],
+  "relatedIds": [
+    "content-collections-tutorial",
+    "add-a-sitemap",
+    "create-dynamic-routes"
+  ],
+  "tags": [
+    "migration",
+    "seo",
+    "routing"
+  ],
+  "published": "2026-04-02",
+  "updated": "2026-10-29"
+}

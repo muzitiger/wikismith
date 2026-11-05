@@ -1,0 +1,304 @@
+---
+/**
+ * TUTORIAL DETAIL — one route, five templates.
+ *
+ * `template` on the tutorial decides which blocks render and in what order.
+ * There is deliberately ONE page file: five near-identical .astro files would
+ * drift within a month, and the step rendering (the part that actually matters)
+ * is identical across all of them.
+ *
+ * Block order (all templates):
+ *   breadcrumb → h1 → answer → meta → [TOC] → prerequisites → steps
+ *   → body prose → errors → faq → related → series nav
+ *
+ * Every string here comes from content. Nothing is hardcoded.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import AnswerBox from '@/components/content/AnswerBox.astro';
+import MetaBar from '@/components/content/MetaBar.astro';
+import PrereqList from '@/components/content/PrereqList.astro';
+import StepList from '@/components/content/StepList.astro';
+import BlockRenderer from '@/components/content/BlockRenderer.astro';
+import ErrorList from '@/components/content/ErrorList.astro';
+import FaqList from '@/components/content/FaqList.astro';
+import RelatedList from '@/components/content/RelatedList.astro';
+import Toc from '@/components/content/Toc.astro';
+import SeriesNav from '@/components/content/SeriesNav.astro';
+
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import {
+  getTutorials,
+  requireTopic,
+  getErrorsByTopic,
+  resolveErrors,
+  getCluster,
+  resolveRelated,
+  getSeries,
+  seriesNeighbors,
+  getTutorialByTopicAndSlug,
+} from '@/lib/content';
+import { howToPageNodes, articlePageNodes, type Crumb } from '@/lib/jsonld';
+import { slugifyHeading, stripMarkdown } from '@/lib/blocks';
+import RichText from '@/components/content/RichText.astro';
+
+export async function getStaticPaths() {
+  const tutorials = await getTutorials();
+  return tutorials.map((t) => ({
+    params: { topic: t.data.topic, slug: t.id },
+    props: { tutorial: t },
+  }));
+}
+
+const { tutorial } = Astro.props;
+const topicSlug = tutorial.data.topic;
+const topic = await requireTopic(topicSlug);
+const d = tutorial.data;
+
+const topicName = topic.data.nameShort ?? topic.data.name;
+const path = routes.tutorial(topicSlug, tutorial.id);
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+
+/* ---- Resolve every error this page mentions, once ---- */
+const allErrors = await getErrorsByTopic(topicSlug);
+const errorIndex = new Map(
+  allErrors.map((e) => [e.id, { slug: e.id, message: e.data.message, answer: e.data.answer }])
+);
+
+const pageErrorIds = [
+  ...new Set([...d.errorIds, ...d.steps.flatMap((s) => s.errorIds)]),
+];
+const pageErrors = (await resolveErrors(topicSlug, pageErrorIds)).map((e) => ({
+  slug: e.id,
+  message: e.data.message,
+  answer: e.data.answer,
+  category: e.data.category,
+}));
+
+/* ---- Prerequisite cross-links ---- */
+const topicTutorials = await getTutorials();
+const linkTitles: Record<string, string> = {};
+for (const t of topicTutorials) {
+  if (t.data.topic === topicSlug) linkTitles[t.id] = t.data.h1;
+}
+
+/* ---- Related ---- */
+const related = await resolveRelated(tutorial, 6);
+
+/* ---- Series neighbours ---- */
+const seriesDoc = d.seriesId ? await getSeries(topicSlug, d.seriesId) : undefined;
+const neighbors = seriesDoc ? await seriesNeighbors(seriesDoc, tutorial.id) : undefined;
+
+/* ---- Pillar (for breadcrumb + sidebar link) ---- */
+const pillar = d.pillarId ? await getTutorialByTopicAndSlug(topicSlug, d.pillarId) : undefined;
+
+/* ---- Cluster (pillar pages list their spokes) ---- */
+const cluster =
+  d.template === 'pillar' ? await getCluster(topicSlug, tutorial.id) : [];
+
+/* ---- Breadcrumbs ---- */
+const crumbs: Crumb[] = [{ name: UI.siteName, path: routes.hub() }];
+if (topic.data.kind !== 'stub') {
+  crumbs.push({ name: topicName, path: routes.topic(topicSlug) });
+  crumbs.push({ name: UI.nav.tutorials, path: routes.tutorials(topicSlug) });
+}
+if (pillar) crumbs.push({ name: pillar.data.h1, path: routes.tutorial(topicSlug, pillar.id) });
+crumbs.push({ name: d.h1, path });
+
+/* ---- JSON-LD ---- */
+const jsonLd =
+  d.template === 'howto' || d.template === 'getting-started' || d.template === 'migration'
+    ? howToPageNodes({ origin }, tutorial, path, crumbs)
+    : articlePageNodes(
+        { origin },
+        tutorial,
+        path,
+        crumbs,
+        cluster.map((c) => ({ name: c.data.h1, path: routes.tutorial(topicSlug, c.id) }))
+      );
+
+/* ---- TOC ----
+ *
+ * Built from the same data the page renders, in render order, so a TOC entry
+ * can never point at a heading that is not on the page. Body H2s get their own
+ * entries instead of being flattened under one "How it works" label.
+ */
+const sections: Array<{ id: string; label: string }> = [];
+if (d.prerequisites.length > 0) sections.push({ id: 'prerequisites', label: UI.section.prerequisites });
+for (const s of [...d.steps].sort((a, b) => a.n - b.n)) {
+  sections.push({ id: `step-${s.n}`, label: `Step ${s.n} — ${s.title}` });
+}
+if (cluster.length > 0) sections.push({ id: 'in-this-guide', label: 'Step-by-step guides in this area' });
+for (const b of d.body) {
+  if (b.type === 'h2') {
+    sections.push({ id: `section-${slugifyHeading(b.text)}`, label: stripMarkdown(b.text) });
+  }
+}
+if (pageErrors.length > 0) sections.push({ id: 'common-errors', label: UI.section.errors });
+if (d.faq.length > 0) sections.push({ id: 'faq', label: UI.section.faq });
+if (related.length > 0) sections.push({ id: 'related', label: UI.section.related });
+
+const showStepsHeading = d.template !== 'checklist';
+---
+
+<BaseLayout
+  title={d.seo.title}
+  description={d.seo.description}
+  canonical={d.seo.canonical}
+  noindex={d.seo.noindex || topic.data.status === 'draft'}
+  ogImage={d.seo.ogImage}
+  titleSuffix={topicName}
+  jsonLd={jsonLd}
+  publishedTime={d.published}
+  modifiedTime={d.updated}
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <div class="grid gap-12 xl:grid-cols-[minmax(0,1fr)_15rem]">
+    <article class="min-w-0 max-w-3xl">
+      <header>
+        <p class="text-xs font-medium uppercase tracking-wider text-accent/70">
+          {d.template === 'pillar' && 'Topic guide'}
+          {d.template === 'getting-started' && 'Getting started'}
+          {d.template === 'checklist' && 'Checklist'}
+          {d.template === 'migration' && 'Migration guide'}
+          {d.template === 'howto' && 'Step-by-step'}
+        </p>
+        <h1 class="mt-2 text-3xl font-bold leading-tight tracking-tight text-white md:text-[2.5rem] md:leading-[1.15]">
+          {d.h1}
+        </h1>
+
+        <div class="mt-6">
+          <AnswerBox answer={d.answer} label={UI.section.answer} />
+        </div>
+
+        <MetaBar
+          difficulty={d.difficulty}
+          totalMinutes={d.totalMinutes}
+          stepCount={d.steps.length}
+          testedVersion={d.testedWith.version}
+          testedDate={d.testedWith.date}
+          environment={d.testedWith.environment}
+          updated={d.updated}
+        />
+      </header>
+
+      {/* ---------------- Prerequisites ---------------- */}
+      {
+        d.prerequisites.length > 0 && (
+          <section class="mt-12" id="prerequisites">
+            <h2 class="text-xl font-semibold text-ink-100 scroll-mt-24">{UI.section.prerequisites}</h2>
+            <div class="mt-4">
+              <PrereqList prerequisites={d.prerequisites} topic={topicSlug} linkTitles={linkTitles} />
+            </div>
+          </section>
+        )
+      }
+
+      {/* ---------------- Steps ---------------- */}
+      {
+        showStepsHeading && (
+          <section class="mt-12">
+            {d.template !== 'howto' && (
+              <h2 class="text-xl font-semibold text-ink-100 scroll-mt-24">{UI.section.steps}</h2>
+            )}
+            <StepList
+              steps={d.steps}
+              topic={topicSlug}
+              errorIndex={errorIndex}
+            />
+          </section>
+        )
+      }
+
+      {/* ---------------- Cluster list (pillar only) ---------------- */}
+      {
+        cluster.length > 0 && (
+          <section class="mt-12" id="in-this-guide">
+            <h2 class="text-xl font-semibold text-ink-100 scroll-mt-24">Step-by-step guides in this area</h2>
+            <ul class="mt-4 divide-y divide-ink-800 rounded-lg border border-ink-800">
+              {cluster.map((c) => (
+                <li>
+                  <a
+                    href={routes.tutorial(topicSlug, c.id)}
+                    class="group flex flex-col gap-1 px-4 py-3.5 transition-colors hover:bg-ink-900/60"
+                  >
+                    <span class="text-sm font-medium text-ink-200 group-hover:text-white">{c.data.h1}</span>
+                    <RichText class="text-xs leading-relaxed text-ink-500" text={c.data.excerpt} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+
+      {/* ---------------- Body prose ---------------- */}
+      {
+        d.body.length > 0 && (
+          <div class="mt-12 prose-docs">
+            <BlockRenderer blocks={d.body} topic={topicSlug} errorIndex={errorIndex} />
+          </div>
+        )
+      }
+
+      {/* ---------------- Common errors ---------------- */}
+      {
+        pageErrors.length > 0 && (
+          <section class="mt-14" id="common-errors">
+            <h2 class="text-xl font-semibold text-ink-100 scroll-mt-24">{UI.section.errors}</h2>
+            <p class="mt-2 text-sm text-ink-500">{UI.section.errorsLead}</p>
+            <ErrorList errors={pageErrors} topic={topicSlug} />
+          </section>
+        )
+      }
+
+      {/* ---------------- FAQ ---------------- */}
+      {
+        d.faq.length > 0 && (
+          <section class="mt-14" id="faq">
+            <h2 class="text-xl font-semibold text-ink-100 scroll-mt-24">{UI.section.faq}</h2>
+            <FaqList faq={d.faq} />
+          </section>
+        )
+      }
+
+      {/* ---------------- Related ---------------- */}
+      {
+        related.length > 0 && (
+          <section class="mt-14" id="related">
+            <h2 class="text-xl font-semibold text-ink-100 scroll-mt-24">{UI.section.related}</h2>
+            <RelatedList
+              items={related.map((r) => ({
+                slug: r.id,
+                title: r.data.h1,
+                excerpt: r.data.excerpt,
+                template: r.data.template,
+              }))}
+              topic={topicSlug}
+            />
+          </section>
+        )
+      }
+
+      {/* ---------------- Series nav ---------------- */}
+      {
+        seriesDoc && neighbors && neighbors.index > 0 && (
+          <SeriesNav
+            topic={topicSlug}
+            seriesSlug={seriesDoc.id}
+            seriesTitle={seriesDoc.data.h1}
+            index={neighbors.index}
+            total={neighbors.total}
+            prev={neighbors.prev ? { slug: neighbors.prev.id, title: neighbors.prev.data.h1 } : null}
+            next={neighbors.next ? { slug: neighbors.next.id, title: neighbors.next.data.h1 } : null}
+          />
+        )
+      }
+    </article>
+
+    <Toc sections={sections} />
+  </div>
+</BaseLayout>

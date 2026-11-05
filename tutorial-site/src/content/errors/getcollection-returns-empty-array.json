@@ -1,0 +1,170 @@
+{
+  "slug": "getcollection-returns-empty-array",
+  "topic": "astro",
+  "seo": {
+    "title": "getCollection Returns Empty Array in Astro: 4 Causes",
+    "description": "getCollection resolves to [] even though the files exist. Four causes, in order of likelihood, with a one-command check for each."
+  },
+  "h1": "getCollection Returns an Empty Array: Four Causes",
+  "message": "getCollection() returns []",
+  "answer": "The collection name does not match the export in content.config.ts, or the files sit outside the loader's base directory. Check the export key first — a typo there returns an empty array with no error.",
+  "symptom": "A page that maps over getCollection('posts') renders nothing. The build passes, the editor shows no type errors if the collection name happens to exist, and adding console.log confirms the array is empty. Files are present on disk and appear valid.",
+  "category": "config",
+  "affected": {
+    "versions": ">=5.0.0",
+    "platforms": ["all"]
+  },
+  "causes": [
+    {
+      "title": "The name passed to getCollection is not an exported key",
+      "explain": "Astro keys collections by the property name in the exported `collections` object, not by the folder name. Exporting `{ blog }` while calling `getCollection('posts')` returns an empty array rather than throwing, because the lookup is tolerant by design.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "List the exported keys",
+          "body": [
+            {
+              "type": "p",
+              "text": "Open `src/content.config.ts` and read the final export. The keys there are the only valid collection names."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "code": "export const collections = { blog, docs, changelog };\n// valid names: 'blog', 'docs', 'changelog' — not folder names"
+            }
+          ],
+          "expected": "You have the exact list of valid collection names.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Make the call match the key",
+          "body": [
+            {
+              "type": "p",
+              "text": "Change the string to the exported key. If you would rather rename the collection, rename the key and every call site together — a partial rename is how this bug gets reintroduced."
+            }
+          ],
+          "expected": "The string in getCollection matches an exported key exactly, including case.",
+          "minutes": 1
+        }
+      ]
+    },
+    {
+      "title": "The files are in a subdirectory the glob does not reach",
+      "explain": "`**/*.md` is recursive and reaches nested folders, but `*.md` only matches the top level. A collection whose files all live in `src/content/blog/2026/` is empty under the non-recursive pattern.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check the nesting depth",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "find src/content/blog -type f -name '*.md' | head"
+            }
+          ],
+          "expected": "You see the actual depth of the files.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Use a recursive pattern",
+          "body": [
+            {
+              "type": "p",
+              "text": "Change the pattern to `**/*.{md,mdx}` unless you deliberately want only top-level files. Note that nesting changes the entry ids — they include path segments, which affects your routes."
+            }
+          ],
+          "expected": "The pattern reaches every file, and you have accounted for the longer ids in your routes.",
+          "minutes": 2
+        }
+      ]
+    },
+    {
+      "title": "The frontmatter filter excludes everything",
+      "explain": "If you pass a filter to getCollection, it runs before you see the result. A filter on `!data.draft` returns nothing when every file has `draft: true` — often because the default was flipped during development and never reverted.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Remove the filter temporarily",
+          "body": [
+            {
+              "type": "p",
+              "text": "Call getCollection with only the collection name and log the length. If the array is now populated, the filter is the problem."
+            }
+          ],
+          "expected": "You know whether the filter is responsible.",
+          "minutes": 2
+        },
+        {
+          "n": 2,
+          "title": "Inspect the filtered field across files",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "grep -r 'draft:' src/content/blog | head -20"
+            }
+          ],
+          "expected": "You can see whether the field is set to the same value everywhere.",
+          "minutes": 1
+        }
+      ]
+    },
+    {
+      "title": "Types are stale so the query compiles against the old shape",
+      "explain": "After renaming a collection, generated types in `.astro/types.d.ts` can lag behind. The editor keeps accepting the old name and the runtime lookup fails quietly.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Regenerate types",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "npx astro sync"
+            }
+          ],
+          "expected": "Sync completes without errors.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Restart the dev server",
+          "body": [
+            {
+              "type": "p",
+              "text": "Type generation and the dev server cache separately. A rename needs both refreshed, or you will be debugging a problem that no longer exists on disk."
+            }
+          ],
+          "expected": "The query works after restart, or the real error surfaces.",
+          "minutes": 2
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "cmd": "npx astro build",
+    "expect": "Pages that map the collection render their entries"
+  },
+  "prevention": [
+    "Export the collections object with explicit names and keep folder names matching the keys — the mismatch is easy to prevent and hard to spot.",
+    "Log `(await getCollection(name)).length` once when adding a collection; an empty array should be a deliberate state, never a surprise.",
+    "Prefer `**/` in glob patterns unless top-level-only is intentional."
+  ],
+  "seeAlsoIds": ["content-collections-empty-collection", "content-collections-invalid-frontmatter"],
+  "faq": [
+    {
+      "q": "Why does an unknown collection name not throw?",
+      "a": "The lookup is tolerant so that a single missing collection does not take down an entire build. The cost is that a typo is silent. If you want it to fail loudly, assert the length right after the call."
+    },
+    {
+      "q": "Does the collection name have to match the folder name?",
+      "a": "No, the loader's `base` decides the folder and the export key decides the name. Keeping them the same is still worth doing purely so the next reader does not have to hold two names in their head."
+    }
+  ],
+  "tags": ["content-collections", "configuration"],
+  "published": "2026-03-08",
+  "updated": "2026-10-20"
+}

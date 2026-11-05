@@ -1,0 +1,171 @@
+{
+  "slug": "content-collections-empty-collection",
+  "topic": "astro",
+  "seo": {
+    "title": "Astro Collection Is Empty: Why No Files Were Found",
+    "description": "getCollection returns an empty array and nothing errors out. The loader base path or file pattern is almost always the reason. Here is how to diagnose it."
+  },
+  "h1": "Astro Content Collection Returns Nothing: Finding the Missing Files",
+  "message": "Collection is empty or getCollection returns []",
+  "answer": "The loader's base path or glob pattern does not match any file, so schema validation never ran. Fix the path in src/content.config.ts — the collection is silently empty, not broken.",
+  "symptom": "getCollection('blog') resolves to an empty array. The build succeeds. No error appears in the terminal or the dev server log. Pages that map over the collection render an empty list, which in a production build looks like a design bug rather than a data problem.",
+  "category": "config",
+  "affected": {
+    "versions": ">=5.0.0",
+    "platforms": [
+      "all"
+    ]
+  },
+  "causes": [
+    {
+      "title": "The base path resolves from the project root, not from src/",
+      "explain": "This is the single most common cause. The loader path is resolved relative to the project root, so `./content/blog` looks for a directory that does not exist. Astro finds no files, validates nothing, and returns an empty array without complaint.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Print the resolved path",
+          "body": [
+            {
+              "type": "p",
+              "text": "The quickest confirmation is to check whether the directory the loader describes actually exists relative to the project root."
+            },
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "ls -d ./src/content/blog   # what the loader should point at\nls -d ./content/blog        # what it points at if the prefix is missing"
+            }
+          ],
+          "expected": "Exactly one of those two commands succeeds.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Add the src prefix to base",
+          "body": [
+            {
+              "type": "p",
+              "text": "Change `base` to include `./src/`. Every collection in a standard Astro project needs it, because content lives under `src/` while the config sits at the project root."
+            }
+          ],
+          "expected": "The `base` value now matches a directory that exists.",
+          "minutes": 1
+        },
+        {
+          "n": 3,
+          "title": "Re-sync and query again",
+          "body": [
+            {
+              "type": "p",
+              "text": "Sync regenerates the collection data. If the path was the only problem, the array fills immediately."
+            }
+          ],
+          "expected": "getCollection returns a non-empty array.",
+          "verify": {
+            "cmd": "npx astro sync",
+            "expect": "Synced content"
+          },
+          "minutes": 1
+        }
+      ]
+    },
+    {
+      "title": "The glob pattern excludes the file extensions you used",
+      "explain": "A pattern of `**/*.md` ignores `.mdx` files. A pattern of `**/*.{md,mdx}` catches both. If the project uses `.mdx` and the pattern only lists `.md`, every file is filtered out before validation.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "List the extensions actually present",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "find src/content/blog -type f | sed 's/.*\\.//' | sort -u"
+            }
+          ],
+          "expected": "You see the distinct extensions used in that folder.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Widen the pattern to cover them",
+          "body": [
+            {
+              "type": "p",
+              "text": "Extend the brace group so it lists every extension found in the previous step. Add `.json` and `.yaml` too if the collection mixes formats."
+            }
+          ],
+          "expected": "The glob pattern lists every extension in use.",
+          "minutes": 1
+        }
+      ]
+    },
+    {
+      "title": "The config file is at the Astro 4 path",
+      "explain": "A project upgraded from Astro 4 keeps `src/content/config.ts`, which Astro 5 does not read. The collections object is never registered, so every collection appears empty rather than missing.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check which config path exists",
+          "body": [
+            {
+              "type": "code",
+              "lang": "bash",
+              "code": "ls src/content.config.ts src/content/config.ts 2>&1"
+            }
+          ],
+          "expected": "You see which of the two paths is present.",
+          "minutes": 1
+        },
+        {
+          "n": 2,
+          "title": "Move it to src/content.config.ts",
+          "body": [
+            {
+              "type": "p",
+              "text": "Move the file up one level and delete the old one. Leaving both in place is worse than either alone, because edits to the ignored file appear to have no effect."
+            }
+          ],
+          "expected": "Only `src/content.config.ts` exists.",
+          "minutes": 2
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "cmd": "npx astro sync",
+    "expect": "Synced content, with no glob-loader warnings about a missing base directory"
+  },
+  "prevention": [
+    "After adding a collection, always log the array length once — an empty collection is the one failure mode with no error message.",
+    "Keep the extensions in the glob pattern in sync with the extensions you actually write.",
+    "Upgrade the config path as part of the Astro 5 migration, not as a follow-up task."
+  ],
+  "seeAlsoIds": [
+    "content-collections-invalid-frontmatter",
+    "getcollection-returns-empty-array"
+  ],
+  "faq": [
+    {
+      "q": "Why is there no error when the directory is missing?",
+      "a": "A glob matching zero files is a valid query, not a failure. The loader warns once during sync about a missing base directory, which is easy to miss in build output but is the only signal you get."
+    },
+    {
+      "q": "The folder has files but the collection is still empty. What now?",
+      "a": "Check that the files have frontmatter at all. A file with no frontmatter block is still loaded, but if the schema has required fields, that produces a schema error rather than an empty collection. An empty collection almost always means a path or pattern mismatch."
+    },
+    {
+      "q": "Does an empty collection break the build in production?",
+      "a": "No, it builds successfully and ships empty pages. That is precisely why it is dangerous: a staging build looks fine, the deploy succeeds, and the only symptom is missing lists on the live site. Adding an assertion that a collection has at least one entry, run in CI, turns a silent content gap into a failed pipeline."
+    },
+    {
+      "q": "Why does sync warn about a missing base directory only once?",
+      "a": "Because it is emitted during the initial content scan rather than per build step. If you miss it in the scrollback, run astro sync on its own and read the output carefully — the warning names the exact absolute path it tried to read."
+    }
+  ],
+  "tags": [
+    "content-collections",
+    "configuration"
+  ],
+  "published": "2026-03-05",
+  "updated": "2026-10-20"
+}

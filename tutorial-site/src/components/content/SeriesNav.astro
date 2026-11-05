@@ -1,0 +1,67 @@
+---
+/**
+ * B11 SeriesNav — prev/next inside a linear learning path.
+ *
+ * Chain-reading is the single most effective dwell-time lever on a docs site:
+ * far stronger than a grid of "related" cards, because the reader has already
+ * committed to a sequence. Requires prev/next to actually be sequential, which
+ * is why the series item order is validated at build time.
+ */
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+
+interface Props {
+  topic: string;
+  seriesSlug: string;
+  seriesTitle: string;
+  index: number;
+  total: number;
+  prev: { slug: string; title: string } | null;
+  next: { slug: string; title: string } | null;
+}
+
+const { topic, seriesSlug, seriesTitle, index, total, prev, next } = Astro.props;
+
+const short = (t: string) => t.replace(/\s*\([^)]*\)\s*$/, '');
+---
+
+<nav class="mt-14 rounded-xl border border-ink-800 bg-ink-900/40 p-5" aria-label={UI.section.series} data-block="series-nav">
+  <div class="flex items-center justify-between gap-4">
+    <a href={routes.series(topic, seriesSlug)} class="text-xs font-semibold uppercase tracking-wider text-accent hover:underline">
+      {seriesTitle}
+    </a>
+    <span class="font-mono text-xs text-ink-600 tabular-nums">{index} / {total}</span>
+  </div>
+
+  <div class="mt-4 grid gap-3 sm:grid-cols-2">
+    {prev ? (
+      <a
+        href={routes.tutorial(topic, prev.slug)}
+        class="group flex flex-col gap-1 rounded-lg border border-ink-800 px-4 py-3 transition-colors hover:border-ink-600 hover:bg-ink-900"
+      >
+        <span class="text-[0.6875rem] uppercase tracking-wider text-ink-500">&larr; {UI.section.prev}</span>
+        <span class="text-sm text-ink-300 group-hover:text-white">{short(prev.title)}</span>
+      </a>
+    ) : (
+      <span></span>
+    )}
+
+    {next ? (
+      <a
+        href={routes.tutorial(topic, next.slug)}
+        class="group flex flex-col gap-1 rounded-lg border border-ink-800 px-4 py-3 text-right transition-colors hover:border-ink-600 hover:bg-ink-900 sm:col-start-2"
+      >
+        <span class="text-[0.6875rem] uppercase tracking-wider text-ink-500">{UI.section.next} &rarr;</span>
+        <span class="text-sm text-ink-300 group-hover:text-white">{short(next.title)}</span>
+      </a>
+    ) : (
+      <a
+        href={routes.series(topic, seriesSlug)}
+        class="flex flex-col gap-1 rounded-lg border border-accent/30 bg-accent/[0.06] px-4 py-3 text-right transition-colors hover:bg-accent/10 sm:col-start-2"
+      >
+        <span class="text-[0.6875rem] uppercase tracking-wider text-accent/80">Series complete</span>
+        <span class="text-sm text-ink-200">Back to the full path &rarr;</span>
+      </a>
+    )}
+  </div>
+</nav>

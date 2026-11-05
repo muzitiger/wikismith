@@ -1,0 +1,25 @@
+---
+/**
+ * JSON-LD emitter. Accepts pre-built nodes only — never a raw object literal
+ * from a page, so structured data can't drift from the visible content.
+ *
+ * Escaping: `<` becomes \u003c so a `</script>` inside a content string
+ * cannot break out of the script tag.
+ */
+import type { JsonLdNode } from '@/lib/jsonld';
+
+interface Props {
+  nodes: JsonLdNode[];
+}
+
+const { nodes } = Astro.props;
+
+const clean = nodes.filter((n) => n && Object.keys(n).length > 0);
+
+const payload = clean.map((n) => JSON.stringify(n).replace(/</g, '\\u003c'));
+---
+
+{clean.length === 1 && <script type="application/ld+json" set:html={payload[0]} />}
+{clean.length > 1 && (
+  <script type="application/ld+json" set:html={`[${payload.join(',')}]`} />
+)}

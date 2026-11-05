@@ -1,0 +1,151 @@
+{
+  "slug": "astro-vs-nextjs",
+  "seo": {
+    "title": "Astro vs Next.js: Which One Fits Your Project in 2026",
+    "description": "Astro and Next.js solve different problems. A side-by-side look at rendering model, bundle size, ecosystem, and migration cost — with a verdict per use case."
+  },
+  "h1": "Astro vs Next.js: Which One Should You Use?",
+  "answer": "Pick Astro for content-led sites where most pages are static and interactivity is occasional. Pick Next.js when your pages need per-request data, shared client state, or a React application layer. The deciding question is how much of your site is actually an application.",
+  "aId": "astro",
+  "bId": "nextjs",
+  "testedWith": {
+    "aVersion": "5.18.2",
+    "bVersion": "15.5",
+    "date": "2026-10-27"
+  },
+  "rows": [
+    {
+      "feature": "Rendering model",
+      "a": "Builds to static HTML. SSR available with an adapter.",
+      "b": "Server Components by default, with static, server, and client rendering per route.",
+      "edge": "b",
+      "note": "Next.js covers more modes; Astro is lighter in the mode most content sites need."
+    },
+    {
+      "feature": "JavaScript shipped",
+      "a": "Zero by default. Only islands get hydrated.",
+      "b": "A React runtime is always present for client components; server components reduce but do not remove it.",
+      "edge": "a"
+    },
+    {
+      "feature": "Component model",
+      "a": "`.astro` components, framework-agnostic. React/Vue/Svelte available as islands.",
+      "b": "React, with all of React's patterns and constraints.",
+      "edge": "tie",
+      "note": "Astro is more flexible; Next.js is more familiar to React teams."
+    },
+    {
+      "feature": "Data fetching",
+      "a": "In frontmatter at build time, or in a content collection loader.",
+      "b": "`async` components, `fetch` with caching, route handlers, server actions.",
+      "edge": "b"
+    },
+    {
+      "feature": "Client state sharing",
+      "a": "Requires an island or a store; no app-wide provider by default.",
+      "b": "Context providers and client components sharing state naturally.",
+      "edge": "b"
+    },
+    {
+      "feature": "Learning curve",
+      "a": "Small. One mental model (build-time fence) explains most behaviour.",
+      "b": "Larger. Server vs client components is a distinction with real consequences.",
+      "edge": "a"
+    },
+    {
+      "feature": "Build speed",
+      "a": "Fast for content; scales with page count.",
+      "b": "Slower builds on large sites; incremental and ISR mitigate it.",
+      "edge": "a"
+    },
+    {
+      "feature": "Content authoring",
+      "a": "First-class: typed collections, Markdown and MDX built in.",
+      "b": "Possible, usually via a CMS or MDX integration.",
+      "edge": "a"
+    },
+    {
+      "feature": "Auth and sessions",
+      "a": "Needs an SSR adapter and manual wiring.",
+      "b": "Supported in the framework, with middleware and server actions.",
+      "edge": "b"
+    },
+    {
+      "feature": "Hosting",
+      "a": "Any static host. No origin server unless you opt into SSR.",
+      "b": "Node or edge runtime required for dynamic routes.",
+      "edge": "a"
+    },
+    {
+      "feature": "Ecosystem size",
+      "a": "Smaller, focused on content and integrations.",
+      "b": "Very large. Most React libraries work.",
+      "edge": "b"
+    },
+    {
+      "feature": "Upgrade churn",
+      "a": "Low. The core has changed little across majors.",
+      "b": "Higher. The App Router migration and Server Components were substantial shifts.",
+      "edge": "a"
+    }
+  ],
+  "winsA": [
+    "A marketing site, documentation tree, or blog ships as static HTML with no runtime. That is not a marginal improvement — a typical content page drops from a few hundred kilobytes of JavaScript to none, which changes time to interactive on mid-range mobile devices, where most of the traffic is.",
+    "Content is a first-class concern rather than something bolted on. Typed collections validate every Markdown file at build time, so a missing field fails the build instead of rendering an empty element in production. Next.js can do this with a CMS, but you are then maintaining a schema in two places.",
+    "The mental model fits in one sentence. Code above the fence runs at build; everything else is HTML. There is no server-versus-client component distinction to reason about on every file, which matters for teams where content authors touch the code."
+  ],
+  "winsB": [
+    "Anything with a logged-in experience is straightforward. Middleware, server actions, session handling, and route protection are all in the framework. Doing the same in Astro means adopting an SSR adapter and wiring auth yourself, at which point you have taken on the server cost without gaining the ecosystem.",
+    "React's ecosystem is available wholesale. Component libraries, form libraries, data-fetching utilities, and the accumulated answer to nearly every UI problem are written for React first. In Astro you can use them inside islands, but you lose the integration benefits across the page.",
+    "Incremental static regeneration solves a real problem: a page that changes hourly without a full rebuild. Astro's static output cannot do this; the replacement is a webhook-triggered rebuild of the whole site, which works until the site is large enough that a full rebuild is slow."
+  ],
+  "verdicts": [
+    {
+      "scenario": "Marketing site or landing pages",
+      "pick": "a",
+      "why": "Static output, instant loads, no runtime to maintain. There is no application logic to justify Next.js here, and the bundle difference is measurable."
+    },
+    {
+      "scenario": "Documentation or a knowledge base",
+      "pick": "a",
+      "why": "Thousands of mostly-static pages with occasional interactivity is exactly the shape Astro optimizes for. Build speed and typed content collections both matter at this scale."
+    },
+    {
+      "scenario": "SaaS dashboard behind a login",
+      "pick": "b",
+      "why": "Per-request data, sessions, and shared client state are the core requirement. Astro would need an adapter and hand-written auth to reach parity, and still lose on ecosystem."
+    },
+    {
+      "scenario": "Blog with a comments section",
+      "pick": "a",
+      "why": "The content is static; the comments are one island. Astro ships JavaScript for the comments component and nothing else, which is the correct amount."
+    },
+    {
+      "scenario": "E-commerce with personalized recommendations",
+      "pick": "either",
+      "why": "Depends on where personalization happens. Edge-side personalization over a static catalog suits Astro; account-aware recommendations and cart state suit Next.js."
+    }
+  ],
+  "migrationId": "migrate-from-nextjs-to-astro",
+  "faq": [
+    {
+      "q": "Can I use React components in Astro?",
+      "a": "Yes, through the React integration. Components render as islands and can be hydrated with a client directive. What does not carry over is anything Next.js-specific: next/link, next/image, next/head, and the data-fetching functions."
+    },
+    {
+      "q": "Is Next.js faster than Astro?",
+      "a": "For a static content page, no — Astro ships less JavaScript, so it reaches interactive sooner. For a dynamic application page, Next.js is doing more work server-side and can feel faster because it avoids full page reloads between routes."
+    },
+    {
+      "q": "Which has better SEO?",
+      "a": "Both render HTML on the server, so both are crawlable. Astro has a small edge on Core Web Vitals for content pages purely because there is less JavaScript to execute. Neither framework's SEO is limited by the framework — it is limited by what you put in the head."
+    },
+    {
+      "q": "Can Astro handle a large site?",
+      "a": "Yes. Static generation scales to tens of thousands of pages; the constraint is build time, which grows roughly linearly. Beyond that, incremental builds and cached data loaders are the tools to reach for."
+    }
+  ],
+  "tags": ["comparison", "framework-choice"],
+  "published": "2026-05-12",
+  "updated": "2026-10-27"
+}

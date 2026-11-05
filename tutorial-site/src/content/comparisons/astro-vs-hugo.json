@@ -1,0 +1,132 @@
+{
+  "slug": "astro-vs-hugo",
+  "seo": {
+    "title": "Astro vs Hugo: Build Speed vs a Component Model",
+    "description": "Hugo builds faster than anything. Astro gives you components and interactivity. A direct comparison for content-heavy sites, with a use-case verdict."
+  },
+  "h1": "Astro vs Hugo: Which Static Site Generator to Pick",
+  "answer": "Choose Hugo when build speed on a very large site is the dominant constraint and your templates are simple. Choose Astro when you need a component model, typed content, or any client-side interactivity without adding separate tooling.",
+  "aId": "astro",
+  "bId": "hugo",
+  "testedWith": {
+    "aVersion": "5.18.2",
+    "bVersion": "0.152",
+    "date": "2026-10-27"
+  },
+  "rows": [
+    {
+      "feature": "Build speed",
+      "a": "Fast; roughly linear with page count.",
+      "b": "Exceptionally fast; parallel across cores, cached between runs.",
+      "edge": "b",
+      "note": "Hugo rebuilds tens of thousands of pages in under a second."
+    },
+    {
+      "feature": "Template language",
+      "a": "`.astro` files: HTML plus JS expressions.",
+      "b": "Go `html/template` plus Hugo functions.",
+      "edge": "a",
+      "note": "Complex Hugo layouts become deeply nested `with`/`if` blocks."
+    },
+    {
+      "feature": "Component model",
+      "a": "Yes, with props, slots, and scoped styles.",
+      "b": "Partials with dict-based parameters; no scoped styles.",
+      "edge": "a"
+    },
+    {
+      "feature": "Content typing",
+      "a": "Zod schemas validated at build time.",
+      "b": "Frontmatter is untyped; archetypes only scaffold defaults.",
+      "edge": "a"
+    },
+    {
+      "feature": "Interactivity",
+      "a": "Islands with any framework, or a plain script tag.",
+      "b": "Manual scripts; no component hydration.",
+      "edge": "a"
+    },
+    {
+      "feature": "Install footprint",
+      "a": "Node project with dependencies.",
+      "b": "Single binary, no runtime dependencies.",
+      "edge": "b"
+    },
+    {
+      "feature": "Content structure",
+      "a": "Collections defined in one config file.",
+      "b": "Directory convention plus taxonomies.",
+      "edge": "tie"
+    },
+    {
+      "feature": "Ecosystem",
+      "a": "Integrations for content, images, deploy targets.",
+      "b": "Themes and shortcodes; less active in tooling.",
+      "edge": "a"
+    },
+    {
+      "feature": "Image handling",
+      "a": "Built-in asset pipeline with `<Image>`.",
+      "b": "Built-in image processing, but configuration-heavy.",
+      "edge": "tie"
+    },
+    {
+      "feature": "Multilingual",
+      "a": "i18n routing built in as of v5.",
+      "b": "Long-standing first-class multilingual support.",
+      "edge": "b"
+    }
+  ],
+  "winsA": [
+    "Components with scoped styles are the difference between a layout you can refactor and one you are afraid to touch. A Hugo partial taking a dict of unnamed parameters has no way to express which keys are required, so every change is a grep across templates.",
+    "Typed content collections catch authoring mistakes at build time. In Hugo, a missing frontmatter field renders an empty string and the page ships looking broken. At a few hundred pages with multiple authors, this is the difference between a build failure and a silent content bug.",
+    "Interactivity is available without a second toolchain. One island component handles a filter or a toggle; in Hugo you are adding a script tag and managing its lifecycle yourself, and there is no build-time guarantee it matches the markup."
+  ],
+  "winsB": [
+    "Nothing else rebuilds this fast. On a 30,000-page site, Hugo's sub-second rebuilds change how you work — you edit, save, and see the result before your hand leaves the keyboard. Astro will take minutes on the same site, and that compounds across a working day.",
+    "One binary with no dependencies is operationally simpler. No Node version to pin, no `node_modules` to audit, no lockfile conflicts. On CI this is a single download and a single command, and it will still work in five years without maintenance.",
+    "Multilingual content has been a core feature for a decade. Astro's i18n support is newer and still evolving; Hugo's is mature, documented, and covers the awkward cases like per-language taxonomies and fallback content."
+  ],
+  "verdicts": [
+    {
+      "scenario": "Very large documentation site, 10k+ pages",
+      "pick": "b",
+      "why": "Build time dominates the workflow at that scale. Hugo's speed advantage compounds daily, and the template complexity cost is bounded if the layouts are simple."
+    },
+    {
+      "scenario": "Marketing site with interactive components",
+      "pick": "a",
+      "why": "Hugo has no component model and no hydration. Building a pricing toggle or an interactive demo means hand-written scripts with no type safety."
+    },
+    {
+      "scenario": "Blog with multiple authors",
+      "pick": "a",
+      "why": "Typed frontmatter is the deciding factor. With several contributors, a schema that fails the build beats a convention that fails silently."
+    },
+    {
+      "scenario": "Static site on a constrained CI budget",
+      "pick": "b",
+      "why": "Sub-second builds mean CI time is dominated by deployment, not generation. On a metered CI plan this is a direct cost saving."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Is Hugo faster because it compiles to a binary?",
+      "a": "Partly. Being a compiled Go binary helps startup, but the main factor is parallel processing across all pages combined with aggressive caching between builds. Astro's build is single-threaded per page in most configurations."
+    },
+    {
+      "q": "Can Hugo do components?",
+      "a": "It has partials, which are reusable templates taking a parameter dict. That covers simple reuse but has no scoped styles, no typed props, and no children/slot mechanism, so composition is limited compared with a real component model."
+    },
+    {
+      "q": "Which is easier to learn?",
+      "a": "Astro, for anyone who knows JavaScript. Hugo's template language is small but idiosyncratic — the `with`, `range`, and pipe syntax takes real adjustment, and debugging a template error is less straightforward than reading a JavaScript stack trace."
+    }
+  ],
+  "tags": [
+    "comparison",
+    "static-site-generator"
+  ],
+  "published": "2026-05-20",
+  "updated": "2026-10-27"
+}

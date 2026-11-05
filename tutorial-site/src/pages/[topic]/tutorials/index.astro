@@ -1,0 +1,139 @@
+---
+/**
+ * TUTORIAL INDEX — /{topic}/tutorials/
+ *
+ * Grouped by template, not by date. A chronological list is meaningless on a
+ * tutorial site: nobody wants "the newest guide", they want "the guide that
+ * does the thing I need". Template grouping is the closest proxy to intent.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/content/Breadcrumbs.astro';
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+import { SITE } from '@/config/site';
+import { getTopics, getTutorialsByTopic } from '@/lib/content';
+import { breadcrumbNode, collectionPageNode, itemListNode } from '@/lib/jsonld';
+import RichText from '@/components/content/RichText.astro';
+
+export async function getStaticPaths() {
+  const topics = await getTopics();
+  return topics
+    .filter((t) => t.data.kind === 'primary')
+    .map((t) => ({ params: { topic: t.id }, props: { topic: t } }));
+}
+
+const { topic } = Astro.props;
+const origin = (Astro.site ?? new URL(SITE.url)).origin;
+const topicName = topic.data.nameShort ?? topic.data.name;
+const path = routes.tutorials(topic.id);
+
+const all = await getTutorialsByTopic(topic.id);
+
+const groupOrder: Array<{ key: string; label: string; templates: string[] }> = [
+  { key: 'howto', label: 'Step-by-step guides', templates: ['howto'] },
+  { key: 'pillar', label: 'In-depth topic guides', templates: ['pillar'] },
+  { key: 'start', label: 'Getting started', templates: ['getting-started'] },
+  { key: 'migration', label: 'Migration guides', templates: ['migration'] },
+  { key: 'checklist', label: 'Checklists', templates: ['checklist'] },
+];
+
+const groups = groupOrder
+  .map((g) => ({
+    ...g,
+    items: all.filter((t) => g.templates.includes(t.data.template)),
+  }))
+  .filter((g) => g.items.length > 0);
+
+const crumbs = [
+  { name: UI.siteName, path: routes.hub() },
+  { name: topicName, path: routes.topic(topic.id) },
+  { name: UI.nav.tutorials, path },
+];
+
+const jsonLd = [
+  breadcrumbNode({ origin }, crumbs),
+  collectionPageNode({ origin }, {
+    name: `All ${topicName} tutorials`,
+    description: topic.data.seo.description,
+    path,
+    updated: topic.data.updated,
+  }),
+  itemListNode({ origin }, {
+    name: `All ${topicName} tutorials`,
+    path,
+    items: all.map((t) => ({ name: t.data.h1, path: routes.tutorial(topic.id, t.id) })),
+  }),
+];
+---
+
+<BaseLayout
+  title={`All ${topicName} Tutorials (${all.length} Guides)`}
+  description={`Every ${topicName} guide on this site, grouped by type: step-by-step how-tos, in-depth topic guides, and migration walkthroughs.`}
+  canonical={path}
+  noindex={topic.data.status === 'draft'}
+  titleSuffix={topicName}
+  jsonLd={jsonLd}
+  ogType="website"
+>
+  <Breadcrumbs crumbs={crumbs} />
+
+  <header class="max-w-2xl">
+    <h1 class="text-3xl font-bold tracking-tight text-white md:text-4xl">
+      {topicName} Tutorials
+    </h1>
+    <p class="mt-4 text-base leading-relaxed text-ink-400">
+      {all.length} guides, grouped by what you are trying to do. Each one states its tested version
+      and gives you a way to confirm every step worked.
+    </p>
+  </header>
+
+  {
+    groups.map((g) => (
+      <section class="mt-12">
+        <div class="flex items-baseline justify-between gap-4 border-b border-ink-800 pb-3">
+          <h2 class="text-lg font-semibold text-ink-100">{g.label}</h2>
+          <span class="font-mono text-xs text-ink-600">{g.items.length}</span>
+        </div>
+        <ul class="divide-y divide-ink-800/70">
+          {g.items.map((t) => (
+            <li>
+              <a
+                href={routes.tutorial(topic.id, t.id)}
+                class="group flex flex-col gap-2 py-4 transition-colors hover:bg-ink-900/40 sm:flex-row sm:gap-6 sm:px-2"
+              >
+                <div class="min-w-0 flex-1">
+                  <h3 class="text-[0.9375rem] font-medium leading-snug text-ink-200 group-hover:text-white">
+                    {t.data.h1}
+                  </h3>
+                  <RichText as="p" class="mt-1.5 line-clamp-2 text-sm leading-relaxed text-ink-500" text={t.data.excerpt} />
+                </div>
+                <div class="flex shrink-0 items-center gap-3 font-mono text-[0.6875rem] text-ink-600">
+                  <span class="rounded border border-ink-800 px-1.5 py-0.5">
+                    {UI.meta[t.data.difficulty]}
+                  </span>
+                  {t.data.totalMinutes && <span>{t.data.totalMinutes}m</span>}
+                  <span>{t.data.steps.length} steps</span>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+
+  {
+    all.length === 0 && (
+      <p class="mt-10 text-sm text-ink-500">{UI.empty.noTutorials}</p>
+    )
+  }
+
+  <div class="mt-14 flex flex-wrap gap-3 text-sm">
+    <a href={routes.topic(topic.id)} class="rounded-lg border border-ink-700 px-4 py-2 text-ink-300 hover:border-ink-500 hover:text-white">
+      &larr; {UI.cta.backToTopic}
+    </a>
+    <a href={routes.errors(topic.id)} class="rounded-lg border border-ink-700 px-4 py-2 text-ink-300 hover:border-ink-500 hover:text-white">
+      {UI.section.allErrors}
+    </a>
+  </div>
+</BaseLayout>
