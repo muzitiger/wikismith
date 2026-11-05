@@ -10,8 +10,6 @@
 
 export const UI = {
   siteName: 'Tutorial Index',
-  /** Homepage <title>. 45–60 chars is the SERP budget; the site name alone wastes it. */
-  homeTitle: 'Step-by-Step Technical Tutorials With Expected Results',
   siteTagline: 'Step-by-step guides, verified against real versions',
   skipToContent: 'Skip to content',
 
