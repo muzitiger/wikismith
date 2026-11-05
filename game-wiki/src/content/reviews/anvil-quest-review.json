@@ -1,0 +1,43 @@
+{
+  "slug": "anvil-quest-review",
+  "seo": {
+    "title": "Anvil Quest Review: Is the Browser Roguelite Worth It?",
+    "description": "An honest Anvil Quest review after 40 hours: the forge system is genuinely excellent, the mobile controls are not, and the last act runs out of ideas.",
+    "noindex": false
+  },
+  "verdict": "Anvil Quest is the rare browser roguelite that earns its hours. The forge system is a real design idea rather than a stat screen with extra steps, and the first fifteen hours are genuinely excellent. It stumbles in act three, where enemy variety collapses into reused bosses with more health, and on mobile, where the forging UI was clearly not designed for a phone. Worth playing on desktop. Worth tolerating on mobile if that is all you have.",
+  "score": 8.2,
+  "pros": [
+    "The forge system rewards experimentation instead of punishing it, which is rare for a roguelite",
+    "Fifteen hours of genuinely good pacing before the content starts repeating",
+    "Runs in a browser with no install and no energy timers or ad gates",
+    "Brann exists, which means the game is playable by people who are bad at action games"
+  ],
+  "cons": [
+    "Act three reuses act one bosses with inflated health pools instead of new encounters",
+    "Mobile forging interface is cramped to the point of being frustrating",
+    "No cross-save between devices, which is a strange omission for a browser game"
+  ],
+  "comparison": [
+    { "feature": "Price", "ours": "Free", "theirs": "$14.99" },
+    { "feature": "Install required", "ours": "No", "theirs": "Yes" },
+    { "feature": "Run length", "ours": "45–90 min", "theirs": "20–30 min" },
+    { "feature": "Build depth", "ours": "Material properties", "theirs": "Card drafts" }
+  ],
+  "faq": [
+    {
+      "q": "Is Anvil Quest worth playing in 2026?",
+      "a": "Yes, on desktop. The forge system is still one of the more interesting build-crafting mechanics in the browser roguelite space, and the first fifteen hours hold up. Skip act three if you value your time."
+    },
+    {
+      "q": "How long is Anvil Quest?",
+      "a": "A first full clear takes 12 to 18 hours. Completionists chasing every forge combination will spend 30 or more. The main story content ends around hour 20."
+    },
+    {
+      "q": "Does Anvil Quest have ads or microtransactions?",
+      "a": "No ads. There is a one-time cosmetic pack and no other purchases. No energy systems, no loot boxes, no ad-gated continues."
+    }
+  ],
+  "published": "2026-06-10",
+  "updated": "2026-10-29"
+}

@@ -1,0 +1,164 @@
+---
+/**
+ * /codes/ — the highest-intent page on the site. Structure is fixed:
+ * redeem steps first (so the answer is above the fold), then active codes,
+ * then expired, then FAQ.
+ *
+ * Copy buttons use a 12-line inline script — the only JS on the whole site.
+ * It is progressive: without JS the codes are still selectable text.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getPage, getCodes } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI, formatDate } from '@/config/ui';
+import { isIndexable } from '@/config/site';
+import { codesNodes } from '@/lib/jsonld';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+import FaqBlock from '@/components/content/FaqBlock.astro';
+import AdSlot from '@/components/ads/AdSlot.astro';
+
+const game = await getGame();
+const page = await getPage('codes');
+const codes = game.data.codesId ? await getCodes(game.data.codesId) : undefined;
+
+if (!codes) {
+  throw new Error(
+    `game.json points codesId at "${game.data.codesId}" but no codes entry has that slug.`
+  );
+}
+
+const origin = Astro.site?.origin ?? 'https://example.com';
+const path = routes.codes();
+
+const crumbs = [
+  { name: UI.labels.home, path: routes.home() },
+  { name: UI.nav.codes, path },
+];
+
+const active = codes.data.entries
+  .filter((e) => e.status === 'active')
+  .sort((a, b) => b.added.valueOf() - a.added.valueOf());
+const expired = codes.data.entries
+  .filter((e) => e.status === 'expired')
+  .sort((a, b) => b.added.valueOf() - a.added.valueOf());
+
+const jsonLd = codesNodes({ origin, game }, crumbs, codes);
+const S = page.data.sectionLabels;
+---
+
+<BaseLayout
+  title={page.data.seo.title}
+  description={page.data.seo.description}
+  canonical={page.data.seo.canonical ?? path}
+  indexable={isIndexable('codes') && !page.data.seo.noindex && !codes.data.seo.noindex}
+  ogImage={codes.data.seo.ogImage}
+  updated={codes.data.updated}
+  jsonLd={jsonLd}
+>
+  <div class="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+    <Breadcrumbs items={[{ name: UI.nav.codes }]} />
+
+    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">{page.data.h1}</h1>
+    <p class="mt-3 max-w-2xl text-ink-300">
+      {active.length} working {active.length === 1 ? 'code' : 'codes'}, checked{' '}
+      <time datetime={codes.data.updated.toISOString().slice(0, 10)} class="text-ink-100">
+        {formatDate(codes.data.updated)}
+      </time>
+      . Expired codes are moved down, never deleted, so old listings stay honest.
+    </p>
+
+    <!-- Redeem steps come before the list: the answer first. -->
+    <section class="mt-8" aria-labelledby="redeem-heading">
+      <h2 id="redeem-heading" class="text-lg font-bold">{S.redeem ?? UI.labels.howToRedeem}</h2>
+      <ol class="mt-3 space-y-2.5">
+        {codes.data.redeemSteps.map((step, i) => (
+          <li class="flex gap-3 text-sm leading-relaxed text-ink-300">
+            <span
+              aria-hidden="true"
+              class="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ink-800 font-mono text-[11px] font-bold text-ink-200"
+            >
+              {i + 1}
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <AdSlot variant="leaderboard" slot="codes-top" />
+
+    <!-- Active -->
+    <section class="mt-10" aria-labelledby="active-heading">
+      <div class="flex items-center gap-2">
+        <h2 id="active-heading" class="text-lg font-bold">{S.active ?? UI.labels.activeCodes}</h2>
+        <span class="rounded-full bg-brand-500/15 px-2 py-0.5 font-mono text-xs font-bold text-brand-400">
+          {active.length}
+        </span>
+      </div>
+
+      <ul class="mt-3 overflow-hidden rounded-lg border border-ink-800">
+        {active.map((entry) => (
+          <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink-800 bg-ink-900/40 px-4 py-3 last:border-b-0">
+            <code class="code-string font-semibold text-brand-400">{entry.code}</code>
+            <button
+              type="button"
+              data-copy={entry.code}
+              class="rounded border border-ink-700 px-2 py-1 text-[11px] font-medium text-ink-300 transition-colors hover:border-brand-500 hover:text-brand-400"
+            >
+              {UI.cta.copyCode}
+            </button>
+            <span class="ml-auto text-right text-xs text-ink-400">{entry.reward}</span>
+            <time
+              class="w-full text-[11px] text-ink-600 sm:w-auto"
+              datetime={entry.added.toISOString().slice(0, 10)}
+            >
+              {UI.labels.added} {formatDate(entry.added)}
+            </time>
+          </li>
+        ))}
+      </ul>
+      {active.length === 0 && <p class="mt-3 text-sm text-ink-400">{UI.empty.codes}</p>}
+    </section>
+
+    <!-- Expired -->
+    {
+      expired.length > 0 && (
+        <section class="mt-10" aria-labelledby="expired-heading">
+          <h2 id="expired-heading" class="text-lg font-bold text-ink-300">
+            {S.expired ?? UI.labels.expiredCodes}
+          </h2>
+          <ul class="mt-3 overflow-hidden rounded-lg border border-ink-850">
+            {expired.map((entry) => (
+              <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink-850 px-4 py-3 last:border-b-0">
+                <code class="code-string text-ink-500 line-through">{entry.code}</code>
+                <span class="ml-auto text-right text-xs text-ink-600">{entry.reward}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <FaqBlock faq={codes.data.faq} />
+
+    <AdSlot variant="leaderboard" slot="codes-bottom" />
+  </div>
+
+  <!-- The only script on the site. ~10 lines, no dependencies, degrades gracefully. -->
+  <script>
+    document.addEventListener('click', async (event) => {
+      const target = event.target as HTMLElement | null;
+      const btn = target?.closest<HTMLButtonElement>('[data-copy]');
+      if (!btn) return;
+      const value = btn.dataset.copy ?? '';
+      try {
+        await navigator.clipboard.writeText(value);
+        const original = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => (btn.textContent = original), 1400);
+      } catch {
+        /* Clipboard blocked (http, permissions). Codes stay selectable. */
+      }
+    });
+  </script>
+</BaseLayout>

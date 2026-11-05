@@ -1,0 +1,94 @@
+---
+/**
+ * SiteHeader — nav links are generated from SITEMAP_OPEN, so a locked route
+ * can never appear in the navigation. No JS: uses a CSS-only disclosure for
+ * the mobile menu (:target-free, checkbox-free — details/summary).
+ */
+import { UI } from '@/config/ui';
+import { isOpen, type RouteKey } from '@/config/site';
+import { getGame } from '@/lib/content';
+import { routes } from '@/lib/routes';
+
+const game = await getGame();
+
+const items: Array<{ key: RouteKey; label: string; href: string }> = [
+  { key: 'play', label: UI.nav.play, href: routes.play() },
+  { key: 'guides', label: UI.nav.guides, href: routes.guides() },
+  { key: 'characters', label: UI.nav.characters, href: routes.characters() },
+  { key: 'codes', label: UI.nav.codes, href: routes.codes() },
+  { key: 'review', label: UI.nav.review, href: routes.review() },
+  { key: 'alternatives', label: UI.nav.alternatives, href: routes.alternatives() },
+];
+
+const visible = items.filter((i) => isOpen(i.key));
+const current = Astro.url.pathname;
+const isActive = (href: string) => current === href || (href !== '/' && current.startsWith(href));
+---
+
+<header class="sticky top-0 z-40 border-b border-ink-800 bg-ink-950/85 backdrop-blur-sm">
+  <div class="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
+    <a href={routes.home()} class="flex shrink-0 items-center gap-2 font-bold tracking-tight text-ink-100">
+      <span
+        aria-hidden="true"
+        class="grid h-7 w-7 place-items-center rounded-md bg-brand-500 text-[13px] font-black text-ink-950"
+      >
+        {game.data.name.charAt(0)}
+      </span>
+      <span class="truncate max-w-[9rem] sm:max-w-none">{game.data.name}</span>
+    </a>
+
+    <nav aria-label={UI.nav.menuLabel} class="ml-auto hidden items-center gap-1 md:flex">
+      {visible.map((item) => (
+        <a
+          href={item.href}
+          aria-current={isActive(item.href) ? 'page' : undefined}
+          class:list={[
+            'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            isActive(item.href)
+              ? 'bg-ink-800 text-ink-100'
+              : 'text-ink-300 hover:bg-ink-850 hover:text-ink-100',
+          ]}
+        >
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <a
+      href={game.data.playUrl}
+      rel="noopener nofollow"
+      class="ml-auto hidden rounded-md bg-brand-500 px-4 py-1.5 text-sm font-semibold text-ink-950 transition-colors hover:bg-brand-400 md:ml-2 md:block"
+    >
+      {UI.cta.playNow}
+    </a>
+
+    {visible.length > 0 && (
+      <details class="relative md:hidden ml-auto">
+        <summary
+          class="grid h-9 w-9 cursor-pointer list-none place-items-center rounded-md border border-ink-700 text-ink-200 [&::-webkit-details-marker]:hidden"
+          aria-label={UI.nav.openMenu}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+          </svg>
+        </summary>
+        <nav
+          aria-label={UI.nav.menuLabel}
+          class="absolute right-0 top-11 w-48 overflow-hidden rounded-lg border border-ink-700 bg-ink-900 py-1 shadow-xl"
+        >
+          {visible.map((item) => (
+            <a
+              href={item.href}
+              class:list={[
+                'block px-4 py-2 text-sm',
+                isActive(item.href) ? 'bg-ink-800 text-ink-100' : 'text-ink-300 hover:bg-ink-850',
+              ]}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </details>
+    )}
+  </div>
+</header>

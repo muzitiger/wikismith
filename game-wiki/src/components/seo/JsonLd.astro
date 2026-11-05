@@ -1,0 +1,35 @@
+---
+/**
+ * JsonLd — serializes structured data safely.
+ *
+ * The escape of `<` to `\u003c` closes the `</script>` injection vector: any
+ * content string containing `</script>` would otherwise break out of the tag.
+ * This is the one place JSON-LD is written to the document.
+ */
+interface Props {
+  nodes: Array<Record<string, unknown>>;
+}
+
+const { nodes } = Astro.props;
+
+const payload = nodes.filter(Boolean).map((node) => {
+  if (Array.isArray(node['@graph'])) return node;
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+});
+
+// Collapse into a single @graph document — one script tag, shared context.
+const doc =
+  payload.length === 0
+    ? null
+    : { '@context': 'https://schema.org', '@graph': payload };
+
+const json = doc
+  ? JSON.stringify(doc)
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      .replace(/&/g, '\\u0026')
+  : null;
+---
+
+{json && <script type="application/ld+json" set:html={json} />}

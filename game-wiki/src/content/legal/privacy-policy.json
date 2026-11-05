@@ -1,0 +1,40 @@
+{
+  "slug": "privacy-policy",
+  "title": "Privacy Policy",
+  "seo": {
+    "title": "Privacy Policy",
+    "description": "What this site collects, what it does not collect, and how advertising and analytics are handled. Written to match the template's actual default behaviour.",
+    "noindex": false
+  },
+  "updated": "2026-10-01",
+  "blocks": [
+    { "type": "h2", "text": "Short version" },
+    {
+      "type": "p",
+      "text": "This site is a static website. It does not have a login, a comment system, or a contact form. In its default configuration it sets no cookies and loads no third-party scripts."
+    },
+    { "type": "h2", "text": "What is collected" },
+    {
+      "type": "list",
+      "items": [
+        "Server or CDN access logs, kept by the hosting provider, which may include IP address, user agent, and requested URL.",
+        "Nothing else, unless you choose to contact the site by email."
+      ]
+    },
+    { "type": "h2", "text": "Advertising and analytics" },
+    {
+      "type": "p",
+      "text": "Advertising and analytics are disabled in this site's default configuration. Any code that would send data to an ad network or analytics provider is absent from the build. If they are enabled in future, this page will be updated before the change goes live."
+    },
+    { "type": "h2", "text": "Outbound links" },
+    {
+      "type": "p",
+      "text": "Links to the game, to videos, and to other websites are marked as external. Once you follow one, the destination site's own privacy policy applies. This site has no control over what that site collects."
+    },
+    { "type": "h2", "text": "Your choices" },
+    {
+      "type": "p",
+      "text": "You can block or delete cookies from your browser at any time. Because this site stores nothing in your browser to begin with, doing so will not affect how it works."
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+---
+/**
+ * VideoEmbed — click-to-load. With FEATURES.videoEmbeds off (the default)
+ * this is a static poster with no iframe and no third-party JS at all.
+ * Turning the flag on replaces the poster with a lazy iframe on click.
+ */
+import { FEATURES } from '@/config/site';
+
+interface Props {
+  url: string;
+  title: string;
+  thumbnail: { src: string; alt: string; width: number; height: number };
+}
+
+const { url, title, thumbnail } = Astro.props;
+
+// Extract a YouTube video ID without a dependency.
+function youtubeId(u: string): string | null {
+  try {
+    const parsed = new URL(u);
+    if (parsed.hostname.endsWith('youtu.be')) return parsed.pathname.slice(1) || null;
+    if (parsed.hostname.endsWith('youtube.com')) {
+      if (parsed.pathname === '/watch') return parsed.searchParams.get('v');
+      if (parsed.pathname.startsWith('/embed/')) return parsed.pathname.split('/')[2] ?? null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+const vid = youtubeId(url);
+---
+
+<figure class="not-prose my-6">
+  {
+    FEATURES.videoEmbeds && vid ? (
+      <div class="aspect-video overflow-hidden rounded-lg border border-ink-800">
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${vid}`}
+          title={title}
+          loading="lazy"
+          allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
+          allowfullscreen
+          class="h-full w-full"
+        />
+      </div>
+    ) : (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener nofollow"
+        class="group relative block aspect-video overflow-hidden rounded-lg border border-ink-800"
+      >
+        <img
+          src={thumbnail.src}
+          alt={thumbnail.alt}
+          width={thumbnail.width}
+          height={thumbnail.height}
+          loading="lazy"
+          decoding="async"
+          class="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
+        />
+        <span class="absolute inset-0 grid place-items-center bg-ink-950/30">
+          <span class="grid h-14 w-14 place-items-center rounded-full bg-brand-500 text-ink-950 shadow-lg transition-transform group-hover:scale-105">
+            <svg class="ml-0.5 h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </span>
+        </span>
+      </a>
+    )
+  }
+  <figcaption class="mt-2 text-xs text-ink-400">{title}</figcaption>
+</figure>

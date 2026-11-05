@@ -1,0 +1,14 @@
+{
+  "id": "official-trailer",
+  "title": "Anvil Quest Official Launch Trailer",
+  "description": "The official launch trailer for Anvil Quest, showing the forge system, three of the game's bosses, and the browser-based combat loop in roughly ninety seconds.",
+  "thumbnail": {
+    "src": "/images/video-trailer.png",
+    "alt": "Anvil Quest launch trailer thumbnail showing a forge and a glowing weapon",
+    "width": 1280,
+    "height": 720
+  },
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "uploadDate": "2025-03-10",
+  "duration": "PT1M32S"
+}

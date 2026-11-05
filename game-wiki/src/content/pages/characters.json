@@ -1,0 +1,13 @@
+{
+  "slug": "characters",
+  "seo": {
+    "title": "Anvil Quest Characters: Full Roster & Tier Ranking",
+    "description": "Every character in Anvil Quest with stats, abilities, and tier placement. Sorted best to worst so you can pick a main without reading all of it.",
+    "noindex": false
+  },
+  "h1": "Anvil Quest characters",
+  "lede": "All playable characters, sorted by tier. Tier reflects how much a character changes a run, not raw damage.",
+  "sectionLabels": {
+    "tierPrefix": "Tier"
+  }
+}

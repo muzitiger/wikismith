@@ -1,0 +1,46 @@
+---
+/**
+ * 404 — top-level. Astro emits dist/404.html for this route at build time.
+ * Verified by scripts/check-build.mjs, which fails the build if the file is
+ * missing. All copy comes from src/content/pages/not-found.json.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getPage } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI } from '@/config/ui';
+
+const game = await getGame();
+const page = await getPage('not-found');
+
+Astro.response.status = 404;
+---
+
+<BaseLayout
+  title={page.data.seo.title}
+  description={page.data.seo.description}
+  canonical={Astro.url.pathname}
+  indexable={false}
+>
+  <section class="mx-auto grid max-w-3xl place-items-center px-4 py-24 text-center sm:px-6">
+    <p class="font-mono text-sm tracking-widest text-brand-400">
+      {page.data.sectionLabels.eyebrow ?? '404'}
+    </p>
+    <h1 class="mt-4 text-3xl font-bold sm:text-4xl">{page.data.h1}</h1>
+    <p class="mt-4 max-w-md text-ink-300">{page.data.lede}</p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a
+        href={routes.home()}
+        class="rounded-md bg-brand-500 px-5 py-2.5 text-sm font-semibold text-ink-950 hover:bg-brand-400"
+      >
+        {UI.labels.home}
+      </a>
+      <a
+        href={game.data.playUrl}
+        rel="noopener nofollow"
+        class="rounded-md border border-ink-700 px-5 py-2.5 text-sm font-semibold text-ink-200 hover:border-ink-600 hover:text-ink-100"
+      >
+        {UI.cta.playNow}
+      </a>
+    </div>
+  </section>
+</BaseLayout>

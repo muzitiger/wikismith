@@ -1,0 +1,33 @@
+---
+/**
+ * CharacterChip — a small linkable pill. Renders a link when the characters
+ * route is open, a plain label when it is not, so locked pages produce no
+ * internal 404s.
+ */
+import { isOpen } from '@/config/site';
+
+interface Props {
+  name: string;
+  href: string;
+  tier?: number;
+}
+
+const { name, href, tier } = Astro.props;
+const linked = isOpen('characters');
+---
+
+{
+  linked ? (
+    <a
+      href={href}
+      class="inline-flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-2.5 py-1 text-xs font-medium text-ink-200 transition-colors hover:border-brand-500 hover:text-brand-400"
+    >
+      {name}
+      {tier && <span class="font-mono text-[10px] text-ink-500">T{tier}</span>}
+    </a>
+  ) : (
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-ink-800 bg-ink-900 px-2.5 py-1 text-xs font-medium text-ink-400">
+      {name}
+    </span>
+  )
+}

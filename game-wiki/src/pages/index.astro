@@ -1,0 +1,299 @@
+---
+/**
+ * Homepage.
+ *
+ * Phase 1: this is the ONLY indexable page. All outbound "see all" links are
+ * gated by SITEMAP_OPEN, so nothing points at an unlisted route yet.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getPage, getGuides, getCharacters, resolveVideos } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI, formatDate } from '@/config/ui';
+import { isOpen } from '@/config/site';
+import { homeNodes } from '@/lib/jsonld';
+import RatingStars from '@/components/ui/RatingStars.astro';
+import FaqBlock from '@/components/content/FaqBlock.astro';
+import VideoEmbed from '@/components/content/VideoEmbed.astro';
+import ContentCard from '@/components/ui/ContentCard.astro';
+import AdSlot from '@/components/ads/AdSlot.astro';
+
+const game = await getGame();
+const page = await getPage('home');
+const [guides, characters, videos] = await Promise.all([
+  getGuides(),
+  getCharacters(),
+  resolveVideos(game.data.videoIds),
+]);
+
+const origin = Astro.site?.origin ?? 'https://example.com';
+const jsonLd = homeNodes({ origin, game }, videos);
+
+const ogImage = page.data.seo.ogImage ?? game.data.cover.src;
+const S = page.data.sectionLabels;
+
+const featuredGuides = guides.slice(0, 3);
+const topCharacters = characters.slice(0, 6);
+---
+
+<BaseLayout
+  title={page.data.seo.title}
+  description={page.data.seo.description}
+  canonical={page.data.seo.canonical ?? routes.home()}
+  indexable={true}
+  ogImage={ogImage}
+  jsonLd={jsonLd}
+>
+  <!-- Hero -->
+  <section class="border-b border-ink-800 bg-gradient-to-b from-ink-900/60 to-ink-950">
+    <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:py-16">
+      <div>
+        {page.data.eyebrow && (
+          <p class="text-xs font-semibold uppercase tracking-[0.15em] text-brand-400">
+            {page.data.eyebrow}
+          </p>
+        )}
+        <h1 class="mt-3 text-3xl font-black leading-[1.1] tracking-tight sm:text-4xl lg:text-5xl">
+          {page.data.h1}
+        </h1>
+        <p class="mt-4 max-w-xl text-base leading-relaxed text-ink-300 sm:text-lg">
+          {game.data.tagline}
+        </p>
+
+        {game.data.rating && (
+          <div class="mt-5">
+            <RatingStars
+              value={game.data.rating.value}
+              best={game.data.rating.best}
+              count={game.data.rating.count}
+            />
+          </div>
+        )}
+
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <a
+            href={game.data.playUrl}
+            rel="noopener nofollow"
+            class="rounded-md bg-brand-500 px-6 py-3 text-sm font-bold text-ink-950 transition-colors hover:bg-brand-400"
+          >
+            {game.data.browserPlayable ? UI.cta.playFree : UI.cta.playNow}
+          </a>
+          {isOpen('guides') && (
+            <a
+              href={routes.guides()}
+              class="rounded-md border border-ink-700 px-6 py-3 text-sm font-semibold text-ink-200 transition-colors hover:border-ink-600 hover:text-ink-100"
+            >
+              {UI.cta.readGuide}
+            </a>
+          )}
+        </div>
+
+        <dl class="mt-7 flex flex-wrap gap-x-8 gap-y-3 text-xs">
+          <div>
+            <dt class="text-ink-500">{UI.labels.developer}</dt>
+            <dd class="mt-0.5 font-medium text-ink-200">{game.data.developer}</dd>
+          </div>
+          <div>
+            <dt class="text-ink-500">{UI.labels.released}</dt>
+            <dd class="mt-0.5 font-medium text-ink-200">
+              <time datetime={game.data.releaseDate.toISOString().slice(0, 10)}>
+                {formatDate(game.data.releaseDate)}
+              </time>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-ink-500">{UI.labels.platforms}</dt>
+            <dd class="mt-0.5 font-medium text-ink-200">{game.data.platforms.join(' · ')}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div>
+        <img
+          src={game.data.cover.src}
+          alt={game.data.cover.alt}
+          width={game.data.cover.width}
+          height={game.data.cover.height}
+          class="w-full rounded-xl border border-ink-800 shadow-2xl"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-6xl px-4 sm:px-6">
+    <AdSlot variant="leaderboard" slot="home-top" />
+
+    <!-- Intro -->
+    <section class="mt-4 grid gap-8 lg:grid-cols-[1fr_18rem]" aria-labelledby="about-heading">
+      <div>
+        <h2 id="about-heading" class="text-2xl font-bold">{S.about}</h2>
+        <div class="prose-site mt-4">
+          {game.data.intro.split('\n\n').map((para) => (
+            <p>{para}</p>
+          ))}
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-1.5">
+          {game.data.tags.map((tag) => (
+            <span class="rounded-full border border-ink-800 bg-ink-900 px-2.5 py-1 text-xs text-ink-400">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <aside class="lg:pt-1">
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">
+            {UI.labels.genres}
+          </p>
+          <ul class="mt-2 space-y-1.5">
+            {game.data.genres.map((g) => (
+              <li class="text-sm text-ink-300">{g}</li>
+            ))}
+          </ul>
+          <hr class="my-4 border-ink-800" />
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">
+            {UI.labels.lastUpdated}
+          </p>
+          <p class="mt-2 text-sm text-ink-300">
+            <time datetime={game.data.updated.toISOString().slice(0, 10)}>
+              {formatDate(game.data.updated)}
+            </time>
+          </p>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Screenshots -->
+    <section class="mt-14" aria-labelledby="shots-heading">
+      <h2 id="shots-heading" class="text-2xl font-bold">{S.screenshots}</h2>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {game.data.screenshots.map((shot) => (
+          <figure class="overflow-hidden rounded-lg border border-ink-800">
+            <img
+              src={shot.src}
+              alt={shot.alt}
+              width={shot.width}
+              height={shot.height}
+              loading="lazy"
+              decoding="async"
+              class="aspect-video w-full object-cover"
+            />
+            {shot.caption && (
+              <figcaption class="border-t border-ink-800 bg-ink-900/40 px-3 py-2 text-xs text-ink-400">
+                {shot.caption}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <AdSlot variant="inline" slot="home-mid" />
+
+    <!-- Videos -->
+    {videos.length > 0 && (
+      <section class="mt-14" aria-labelledby="video-heading">
+        <h2 id="video-heading" class="text-2xl font-bold">{S.video}</h2>
+        <p class="mt-1 text-sm text-ink-400">{UI.labels.videoNote}</p>
+        <div class="mt-4 grid gap-6 sm:grid-cols-2">
+          {videos.map((video) => (
+            <VideoEmbed url={video.data.url} title={video.data.title} thumbnail={video.data.thumbnail} />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Guides -->
+    {featuredGuides.length > 0 && (
+      <section class="mt-14" aria-labelledby="guides-heading">
+        <div class="flex items-baseline justify-between gap-4">
+          <h2 id="guides-heading" class="text-2xl font-bold">{S.guides}</h2>
+          {isOpen('guides') && (
+            <a href={routes.guides()} class="text-sm font-medium text-brand-400 hover:text-brand-500">
+              {UI.cta.viewAllGuides}
+            </a>
+          )}
+        </div>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {featuredGuides.map((guide) => (
+            <ContentCard
+              href={routes.guide(guide.id)}
+              title={guide.data.title}
+              excerpt={guide.data.excerpt}
+              meta={`${UI.labels.updated} ${formatDate(guide.data.updated)}`}
+              routeKey="guides"
+            />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Characters -->
+    {topCharacters.length > 0 && (
+      <section class="mt-14" aria-labelledby="chars-heading">
+        <div class="flex items-baseline justify-between gap-4">
+          <h2 id="chars-heading" class="text-2xl font-bold">{S.characters}</h2>
+          {isOpen('characters') && (
+            <a href={routes.characters()} class="text-sm font-medium text-brand-400 hover:text-brand-500">
+              {UI.cta.viewAllCharacters}
+            </a>
+          )}
+        </div>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {topCharacters.map((c) => (
+            <ContentCard
+              href={routes.character(c.id)}
+              title={c.data.name}
+              excerpt={c.data.summary}
+              image={c.data.portrait}
+              meta={`${c.data.role} · T${c.data.tier}`}
+              routeKey="characters"
+            />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Quick links -->
+    <section class="mt-14" aria-labelledby="quick-heading">
+      <h2 id="quick-heading" class="text-2xl font-bold">{S.start}</h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        {isOpen('codes') && game.data.codesId && (
+          <a
+            href={routes.codes()}
+            class="group rounded-lg border border-ink-800 bg-ink-900/40 p-4 transition-colors hover:border-brand-500/50"
+          >
+            <p class="font-semibold text-ink-100 group-hover:text-brand-400">{UI.nav.codes}</p>
+            <p class="mt-1 text-sm text-ink-400">{S.startCodes}</p>
+          </a>
+        )}
+        {isOpen('review') && game.data.reviewId && (
+          <a
+            href={routes.review()}
+            class="group rounded-lg border border-ink-800 bg-ink-900/40 p-4 transition-colors hover:border-brand-500/50"
+          >
+            <p class="font-semibold text-ink-100 group-hover:text-brand-400">{UI.nav.review}</p>
+            <p class="mt-1 text-sm text-ink-400">{S.startReview}</p>
+          </a>
+        )}
+        {isOpen('alternatives') && game.data.alternativeIds.length > 0 && (
+          <a
+            href={routes.alternatives()}
+            class="group rounded-lg border border-ink-800 bg-ink-900/40 p-4 transition-colors hover:border-brand-500/50"
+          >
+            <p class="font-semibold text-ink-100 group-hover:text-brand-400">{UI.nav.alternatives}</p>
+            <p class="mt-1 text-sm text-ink-400">{S.startAlternatives}</p>
+          </a>
+        )}
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <FaqBlock faq={game.data.faq} />
+
+    <AdSlot variant="leaderboard" slot="home-bottom" />
+  </div>
+</BaseLayout>

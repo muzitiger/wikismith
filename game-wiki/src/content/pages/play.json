@@ -1,0 +1,20 @@
+{
+  "slug": "play",
+  "seo": {
+    "title": "Anvil Quest — Gameplay, Controls, Platforms & Rating",
+    "description": "Everything about Anvil Quest: how the game plays, full keyboard and touch controls, platforms, rating, screenshots, and where to play it free.",
+    "noindex": false
+  },
+  "h1": "Play Anvil Quest",
+  "lede": "The full game reference: how it plays, every control on keyboard and touch, and where to launch it.",
+  "sectionLabels": {
+    "about": "About Anvil Quest",
+    "gameplay": "How Anvil Quest plays",
+    "controls": "Controls",
+    "tags": "Tags",
+    "screenshots": "Screenshots",
+    "video": "Video",
+    "relatedGuides": "Related guides",
+    "relatedCharacters": "Related characters"
+  }
+}

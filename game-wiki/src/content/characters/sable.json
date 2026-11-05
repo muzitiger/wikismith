@@ -1,0 +1,85 @@
+{
+  "slug": "sable",
+  "name": "Sable",
+  "role": "Skirmisher",
+  "seo": {
+    "title": "Sable Build Guide: Fastest Damage in Anvil Quest",
+    "description": "Sable trades health for the fastest attack chain in Anvil Quest. How to build her without dying, which materials fix her fragility, and why she is the speedrun pick.",
+    "noindex": false
+  },
+  "summary": "Sable has the lowest health pool and the highest damage ceiling in the game. She is the right choice if you already know the fights, and a very efficient way to die if you do not.",
+  "body": "Sable's identity is momentum. Her basic attack chains up to four hits, with each consecutive hit dealing 15% more damage than the last, and any hit landed resets a short dash cooldown. Play her well and she never stops moving. Play her badly and she has 90 max health and no way to absorb a mistake.\n\nBecause her damage scales with the chain, the material choice matters more for her than for anyone else. Slow, high-damage weapons actively hurt her — the wind-up breaks the chain and the multiplier resets. What she wants is anything that adds damage per hit rather than per swing, which makes chain-hit and bleed properties disproportionately strong on her.",
+  "portrait": {
+    "src": "/images/char-sable.png",
+    "alt": "Sable, a lean character in light armor holding twin short blades",
+    "width": 512,
+    "height": 512
+  },
+  "stats": [
+    {
+      "label": "Max health",
+      "value": "90"
+    },
+    {
+      "label": "Base damage",
+      "value": "14"
+    },
+    {
+      "label": "Attack speed",
+      "value": "Very fast"
+    },
+    {
+      "label": "Chain multiplier",
+      "value": "+15% per hit"
+    },
+    {
+      "label": "Move speed",
+      "value": "Fast"
+    }
+  ],
+  "tier": 1,
+  "abilities": [
+    {
+      "name": "Slip",
+      "description": "A short dash with 6 frames of invulnerability. Every successful hit reduces its cooldown by 0.4 seconds, which means a sustained chain gives you near-constant access to it. This is the entire defensive kit."
+    },
+    {
+      "name": "Thousand Cuts",
+      "description": "Nine rapid strikes over two seconds. Damage per strike is low but each one counts as a chain hit, so used at the end of a four-hit combo it deals roughly four times its listed damage."
+    },
+    {
+      "name": "Read the Room",
+      "description": "Passive. Sable gains 8% move speed for each enemy within four meters, up to three stacks. Being surrounded is bad for everyone except her."
+    }
+  ],
+  "tips": [
+    "Never let the chain drop. A four-hit chain into a dash into another four-hit chain is roughly double the damage of attacking from neutral repeatedly.",
+    "Thousand Cuts is a finisher, not an opener. Using it from a cold chain wastes most of its damage.",
+    "On Emberfang, hug the right wall. Your dash cooldown is low enough that the fire trail never catches you if you keep circling."
+  ],
+  "guideIds": [
+    "emberfang-boss-fight",
+    "forge-tier-list"
+  ],
+  "tags": [
+    "dps",
+    "speedrun",
+    "melee",
+    "high-skill"
+  ],
+  "updated": "2026-10-22",
+  "faq": [
+    {
+      "q": "Is Sable good in Anvil Quest?",
+      "a": "Sable sits in tier 1 of the roster. She has the highest damage ceiling in the game, but the lowest health pool. She rewards players who already know the fights."
+    },
+    {
+      "q": "What are Sable's stats?",
+      "a": "Max health 90, Base damage 14, Attack speed Very fast, Chain multiplier +15% per hit, Move speed Fast."
+    },
+    {
+      "q": "How do you unlock Sable?",
+      "a": "All three characters are available from the start. There is no unlock requirement, and swapping between runs is free."
+    }
+  ]
+}

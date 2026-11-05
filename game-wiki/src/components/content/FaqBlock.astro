@@ -1,0 +1,41 @@
+---
+/**
+ * FaqBlock — visible FAQ. The same array feeds FAQPage JSON-LD, so the
+ * markup and structured data cannot drift apart.
+ */
+import { UI } from '@/config/ui';
+
+interface Props {
+  faq: Array<{ q: string; a: string }>;
+}
+
+const { faq } = Astro.props;
+---
+
+{
+  faq.length > 0 && (
+    <section class="not-prose mt-12" aria-labelledby="faq-heading">
+      <h2 id="faq-heading" class="text-xl font-bold text-ink-100">
+        {UI.labels.faq}
+      </h2>
+      <div class="mt-4 divide-y divide-ink-800 border-y border-ink-800">
+        {faq.map((item) => (
+          <details class="group py-3">
+            <summary class="flex cursor-pointer list-none items-start justify-between gap-4 [&::-webkit-details-marker]:hidden">
+              <span class="text-sm font-medium text-ink-100">{item.q}</span>
+              <svg
+                class="mt-0.5 h-4 w-4 shrink-0 text-ink-500 transition-transform group-open:rotate-180"
+                viewBox="0 0 16 16"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </summary>
+            <p class="mt-2 pr-8 text-sm leading-relaxed text-ink-300">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  )
+}

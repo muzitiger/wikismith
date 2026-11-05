@@ -1,0 +1,85 @@
+{
+  "slug": "orrin",
+  "name": "Orrin",
+  "role": "Artificer",
+  "seo": {
+    "title": "Orrin Build Guide: Forge Support That Carries Runs",
+    "description": "Orrin is the only character who can use two forge slots from the start. Stats, all three abilities, and why his utility beats raw damage on long descents.",
+    "noindex": false
+  },
+  "summary": "Orrin does the least damage and enables the most. Two forge slots from level one, plus an ability that turns a bad weapon into a usable one mid-fight.",
+  "body": "Orrin exists because the forge is the real game and someone had to make a character built entirely around it. He starts with two forge slots instead of one, meaning he can carry a damage weapon and a utility weapon before anyone else can afford the floor 7 upgrade. That alone makes him the strongest character on a first playthrough, even though his raw numbers are the worst in the roster.\n\nHis damage is genuinely bad. Base 11, medium attack speed, no multiplier on his chain. What he has instead is the ability to swap weapon properties mid-fight, which effectively lets him bring the correct answer to whatever a floor throws at him rather than committing before he knows.",
+  "portrait": {
+    "src": "/images/char-orrin.png",
+    "alt": "Orrin, a hooded character surrounded by floating forge tools",
+    "width": 512,
+    "height": 512
+  },
+  "stats": [
+    {
+      "label": "Max health",
+      "value": "120"
+    },
+    {
+      "label": "Base damage",
+      "value": "11"
+    },
+    {
+      "label": "Attack speed",
+      "value": "Medium"
+    },
+    {
+      "label": "Forge slots",
+      "value": "2"
+    },
+    {
+      "label": "Move speed",
+      "value": "Medium"
+    }
+  ],
+  "tier": 2,
+  "abilities": [
+    {
+      "name": "Requisition",
+      "description": "Swap the active property on your equipped weapon for any property you have already crafted, on a 25 second cooldown. This is the single most flexible ability in the game and the reason Orrin clears content under-geared."
+    },
+    {
+      "name": "Scrap Shot",
+      "description": "Fires three low-damage projectiles that apply your current weapon property. Weak on its own — it exists so that swapping to a fire weapon and immediately applying fire at range is possible."
+    },
+    {
+      "name": "Salvage",
+      "description": "Dismantle a piece of your own gear mid-run for a burst of healing equal to 30% of its upgrade cost. Emergency button. Painful to use, which is correct."
+    }
+  ],
+  "tips": [
+    "Carry a fire weapon and a shield-breaking weapon. Requisition lets you flip between them per encounter instead of per floor.",
+    "Scrap Shot is not a damage ability. Stop trying to clear rooms with it.",
+    "Salvage is worth using on a fully upgraded weapon if it saves the run — you can reforge it after, you cannot reforge a death."
+  ],
+  "guideIds": [
+    "beginner-guide",
+    "forge-tier-list"
+  ],
+  "tags": [
+    "support",
+    "forge",
+    "utility",
+    "flexible"
+  ],
+  "updated": "2026-10-25",
+  "faq": [
+    {
+      "q": "Is Orrin good in Anvil Quest?",
+      "a": "Orrin sits in tier 2 of the roster. His raw damage is the worst in the roster, but two forge slots from the start and the Requisition swap make him the strongest character on a first playthrough."
+    },
+    {
+      "q": "What are Orrin's stats?",
+      "a": "Max health 120, Base damage 11, Attack speed Medium, Forge slots 2, Move speed Medium."
+    },
+    {
+      "q": "How do you unlock Orrin?",
+      "a": "All three characters are available from the start. There is no unlock requirement, and swapping between runs is free."
+    }
+  ]
+}

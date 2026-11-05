@@ -1,0 +1,15 @@
+{
+  "slug": "guides",
+  "seo": {
+    "title": "Anvil Quest Guides: Walkthroughs, Tips & Tier Lists",
+    "description": "All Anvil Quest guides in one place: beginner how-tos, boss walkthroughs, and tier lists ranked by run impact, each one played through before it was written.",
+    "noindex": false
+  },
+  "h1": "Anvil Quest guides",
+  "lede": "Every guide is played through before it is written. Grouped by type, newest first within each group.",
+  "sectionLabels": {
+    "howto": "How-to guides",
+    "walkthrough": "Walkthroughs",
+    "tierlist": "Tier lists"
+  }
+}

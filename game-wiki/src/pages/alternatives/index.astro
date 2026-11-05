@@ -1,0 +1,89 @@
+---
+/**
+ * /alternatives/ — external-item list. Emits ItemList JSON-LD with external
+ * URLs, which is the correct shape (these are not pages on this site).
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getPage, getAlternatives } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI, formatDate } from '@/config/ui';
+import { isIndexable } from '@/config/site';
+import { alternativesNodes } from '@/lib/jsonld';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+import FaqBlock from '@/components/content/FaqBlock.astro';
+import AdSlot from '@/components/ads/AdSlot.astro';
+
+const game = await getGame();
+const page = await getPage('alternatives');
+const altId = game.data.alternativeIds[0];
+const alt = altId ? await getAlternatives(altId) : undefined;
+
+if (!alt) {
+  throw new Error(`game.json has no usable alternativeIds entry (got "${altId}").`);
+}
+
+const origin = Astro.site?.origin ?? 'https://example.com';
+const path = routes.alternatives();
+
+const crumbs = [
+  { name: UI.labels.home, path: routes.home() },
+  { name: UI.nav.alternatives, path },
+];
+
+const jsonLd = alternativesNodes({ origin, game }, crumbs, alt);
+---
+
+<BaseLayout
+  title={page.data.seo.title}
+  description={page.data.seo.description}
+  canonical={page.data.seo.canonical ?? path}
+  indexable={isIndexable('alternatives') && !page.data.seo.noindex && !alt.data.seo.noindex}
+  ogImage={alt.data.seo.ogImage}
+  updated={alt.data.updated}
+  jsonLd={jsonLd}
+>
+  <article class="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+    <Breadcrumbs items={[{ name: UI.nav.alternatives }]} />
+
+    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">{page.data.h1}</h1>
+    <p class="mt-3 max-w-2xl leading-relaxed text-ink-300">{alt.data.intro}</p>
+
+    <AdSlot variant="leaderboard" slot="alt-top" />
+
+    <ol class="mt-8 space-y-3">
+      {alt.data.items.map((item, i) => (
+        <li class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span class="font-mono text-xs text-ink-600">{String(i + 1).padStart(2, '0')}</span>
+            <a
+              href={item.url}
+              rel="noopener nofollow"
+              target="_blank"
+              class="font-semibold text-ink-100 hover:text-brand-400"
+            >
+              {item.name}
+            </a>
+            {item.free && (
+              <span class="rounded-full bg-brand-500/10 px-2 py-0.5 text-[11px] font-medium text-brand-400">
+                {UI.labels.free}
+              </span>
+            )}
+            {item.platforms.length > 0 && (
+              <span class="text-[11px] text-ink-500">{item.platforms.join(' · ')}</span>
+            )}
+          </div>
+          <p class="mt-2 text-sm leading-relaxed text-ink-300">{item.why}</p>
+        </li>
+      ))}
+    </ol>
+
+    <FaqBlock faq={alt.data.faq} />
+
+    <p class="mt-8 text-xs text-ink-600">
+      {UI.labels.lastUpdated}
+      <time datetime={alt.data.updated.toISOString().slice(0, 10)}>
+        {formatDate(alt.data.updated)}
+      </time>
+    </p>
+  </article>
+</BaseLayout>

@@ -1,0 +1,36 @@
+{
+  "slug": "about",
+  "title": "About This Site",
+  "seo": {
+    "title": "About Anvil Quest Wiki: Who Runs This Site",
+    "description": "Who writes this Anvil Quest reference, how the guides are produced, and the site's policy on affiliation, accuracy, and corrections.",
+    "noindex": false
+  },
+  "updated": "2026-10-01",
+  "blocks": [
+    { "type": "h2", "text": "What this site is" },
+    {
+      "type": "p",
+      "text": "An independent reference for Anvil Quest. It exists because the game explains almost nothing and the existing resources are either incomplete or buried in video. Everything here is written by people who actually played the floors being described."
+    },
+    { "type": "h2", "text": "Affiliation" },
+    {
+      "type": "p",
+      "text": "This site is not affiliated with Cold Anvil Studio, and is not endorsed by them. Game names, artwork, and trademarks belong to their respective owners. Screenshots are used for identification and commentary."
+    },
+    { "type": "h2", "text": "How content is produced" },
+    {
+      "type": "list",
+      "items": [
+        "Every guide is played through before it is written. Numbers come from the game, not from other guides.",
+        "Code lists are verified against a live save each time they are updated. Expired codes are moved, not deleted.",
+        "Version-sensitive pages carry the patch they were verified against in the last-updated date."
+      ]
+    },
+    { "type": "h2", "text": "Corrections" },
+    {
+      "type": "p",
+      "text": "If something here is wrong, it should be fixed rather than defended. Corrections are welcome and the update date changes when a page is revised."
+    }
+  ]
+}

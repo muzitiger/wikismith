@@ -1,0 +1,62 @@
+{
+  "slug": "forge-tier-list",
+  "title": "Anvil Quest Forge Tier List: Every Material Ranked",
+  "kind": "tierlist",
+  "seo": {
+    "title": "Anvil Quest Tier List: Best Forge Materials Ranked (2026)",
+    "description": "Every forge material in Anvil Quest ranked by how much it actually changes a run, from must-pick S tier down to iron ore, which is exactly as bad as it looks.",
+    "noindex": false
+  },
+  "excerpt": "Ranked by run impact, not raw damage. Iron is F tier and I will not be taking questions.",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "Ranking forge materials is really ranking the properties they grant, because raw stats are almost irrelevant after floor 4. A material that adds nine damage loses to a material that stops enemies healing. Every time."
+    },
+    { "type": "h2", "text": "The ranking" },
+    {
+      "type": "tiers",
+      "rows": [
+        { "tier": "S", "characterIds": ["sable"] },
+        { "tier": "A", "characterIds": ["brann", "orrin"] }
+      ]
+    },
+    {
+      "type": "note",
+      "tone": "info",
+      "text": "Materials, not characters, are the actual ranking target here. The linked character pages cover who benefits most from each material, since the two systems interact heavily."
+    },
+    { "type": "h2", "text": "Why the top tier is what it is" },
+    {
+      "type": "p",
+      "text": "S-tier materials solve a problem you cannot solve any other way. Emberfang's Scale suppresses regeneration. Voidglass ignores shields entirely. Both of these remove an enemy behaviour from the game rather than adding a number to yours, and the back half of Anvil Quest is built almost entirely around those two behaviours."
+    },
+    {
+      "type": "p",
+      "text": "A-tier materials are strong but replaceable. They add real damage or real survivability, and if you do not have them you can grind a floor or two and compensate. That is the difference: S tier is a key, A tier is a bigger hammer."
+    },
+    { "type": "h2", "text": "The bottom of the list" },
+    {
+      "type": "p",
+      "text": "Iron Ore is F tier. It grants no property, its stats are outclassed by floor 3, and every beginner guide mentions it first because it is the first thing in the inventory. Copper is C tier purely because chain-hit carries floors 1 through 3 and then becomes dead weight, which is still better than iron's contribution of nothing."
+    }
+  ],
+  "characterIds": ["sable", "brann", "orrin"],
+  "tags": ["tier-list", "forge", "materials", "meta"],
+  "faq": [
+    {
+      "q": "What is the best forge material in Anvil Quest?",
+      "a": "Emberfang's Scale for most builds, because regeneration suppression is required for floors 6 and 7. Voidglass is situationally better against shielded enemies in the endgame."
+    },
+    {
+      "q": "Is iron ore worth collecting in Anvil Quest?",
+      "a": "No. Iron grants no property and is outclassed by floor 3 materials. The only reason to pick it up is the one-time achievement for forging an iron weapon."
+    },
+    {
+      "q": "How often does this tier list change?",
+      "a": "The forge system has not been rebalanced since the 2.1 patch in August 2026. If Cold Anvil Studio ships the announced property overhaul, this list gets rewritten from scratch."
+    }
+  ],
+  "published": "2026-05-20",
+  "updated": "2026-10-31"
+}

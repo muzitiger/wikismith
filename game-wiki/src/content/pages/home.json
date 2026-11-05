@@ -1,0 +1,22 @@
+{
+  "slug": "home",
+  "seo": {
+    "title": "Anvil Quest: Guides, Characters, Codes & Walkthroughs",
+    "description": "Unofficial Anvil Quest reference: beginner walkthroughs, every character ranked, working codes, and boss strategies. Built for players who are tired of guessing.",
+    "ogImage": "/images/og-home.png",
+    "noindex": false
+  },
+  "h1": "Anvil Quest",
+  "eyebrow": "Action RPG",
+  "sectionLabels": {
+    "about": "What Anvil Quest actually is",
+    "screenshots": "Screenshots",
+    "video": "Video",
+    "guides": "Guides",
+    "characters": "Characters",
+    "start": "Start here",
+    "startCodes": "Working codes, checked and dated.",
+    "startReview": "A full verdict after 40 hours.",
+    "startAlternatives": "Games that scratch the same itch."
+  }
+}

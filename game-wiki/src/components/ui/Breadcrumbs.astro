@@ -1,0 +1,39 @@
+---
+/**
+ * Breadcrumbs — visible trail + the data used for BreadcrumbList JSON-LD.
+ * Links are suppressed for locked routes so the trail never dead-ends.
+ */
+import { UI } from '@/config/ui';
+import { routes } from '@/lib/routes';
+
+interface Crumb {
+  name: string;
+  href?: string;
+}
+
+interface Props {
+  items: Crumb[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav aria-label={UI.labels.breadcrumb} class="mb-6">
+  <ol class="flex flex-wrap items-center gap-1.5 text-xs text-ink-400">
+    <li>
+      <a href={routes.home()} class="hover:text-brand-400">{UI.labels.home}</a>
+    </li>
+    {items.map((item, i) => (
+      <li class="flex items-center gap-1.5">
+        <span aria-hidden="true" class="text-ink-700">/</span>
+        {item.href && i < items.length - 1 ? (
+          <a href={item.href} class="hover:text-brand-400">{item.name}</a>
+        ) : (
+          <span class={i === items.length - 1 ? 'text-ink-300' : ''} aria-current={i === items.length - 1 ? 'page' : undefined}>
+            {item.name}
+          </span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>

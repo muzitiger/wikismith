@@ -1,0 +1,131 @@
+{
+  "slug": "anvil-quest",
+  "name": "Anvil Quest",
+  "tagline": "Forge a hero, break an empire, and see how far a badly-timed hammer swing gets you.",
+  "description": {
+    "title": "Anvil Quest: Guides, Characters, Codes & Walkthroughs",
+    "description": "Unofficial Anvil Quest reference: beginner walkthroughs, every character ranked, working codes, and boss strategies. Built for players who are tired of guessing.",
+    "noindex": false,
+    "ogImage": "/images/og-home.png"
+  },
+  "intro": "Anvil Quest is a browser-based action RPG about a blacksmith's apprentice who accidentally forges a weapon capable of unmaking the empire that commissioned it. You spend the first hour learning that hitting things harder is rarely the answer, and the next twenty hours proving yourself wrong.\n\nThe loop is simple on purpose: descend, collect ore, forge something unreasonable, descend further. What keeps it interesting is the forging system, which lets you combine a weapon's properties with the properties of whatever you killed. Break a fire-spewing boss down into a hammer and now every swing leaves a small, regrettable forest fire.\n\nIt runs in a browser tab with no install, which is either a feature or a productivity hazard depending on your employer.",
+  "developer": "Cold Anvil Studio",
+  "publisher": "Cold Anvil Studio",
+  "releaseDate": "2025-03-18",
+  "gameplay": {
+    "summary": "Each run is a descent through branching floors. You fight, you collect ore and monster parts, and you forge a weapon at the anvil between floors. The weapon carries the properties of what you killed, so your build is a record of what you have fought. Death ends the run and sends you back to the top with the ore you banked.",
+    "mechanics": [
+      {
+        "label": "The forge",
+        "value": "Combine up to two materials on one weapon. Ore gives flat stats, monster parts give behaviours like burning or shield-breaking."
+      },
+      {
+        "label": "Descent",
+        "value": "Eight floors per run, branching at floors 3, 5, and 7. You cannot backtrack past a branch once you take it."
+      },
+      {
+        "label": "Persistence",
+        "value": "Ore banks between runs. Weapons, upgrades, and monster parts do not. Codes and cosmetics persist."
+      },
+      {
+        "label": "Characters",
+        "value": "Three playable characters with different forge slot counts, health pools, and abilities. Swapping is free between runs."
+      },
+      {
+        "label": "Bosses",
+        "value": "One boss per two floors. Each has a phase transition at 40% health and drops a material unique to that fight."
+      }
+    ]
+  },
+  "controls": [
+    {
+      "device": "Keyboard and mouse",
+      "bindings": [
+        { "action": "Move", "keys": "W A S D" },
+        { "action": "Attack", "keys": "Left click" },
+        { "action": "Ability", "keys": "Right click" },
+        { "action": "Dash", "keys": "Space" },
+        { "action": "Open forge", "keys": "F" },
+        { "action": "Inventory", "keys": "Tab" }
+      ]
+    },
+    {
+      "device": "Touch",
+      "bindings": [
+        { "action": "Move", "keys": "Left virtual stick" },
+        { "action": "Attack", "keys": "Right attack button" },
+        { "action": "Ability", "keys": "Ability button (above attack)" },
+        { "action": "Dash", "keys": "Double-tap move stick" },
+        { "action": "Open forge", "keys": "Hammer icon, top right" }
+      ]
+    }
+  ],
+  "platforms": ["Web", "Windows", "macOS", "Android", "iOS"],
+  "genres": ["Action RPG", "Roguelite", "Browser Game"],
+  "tags": ["browser", "roguelite", "crafting", "boss-rush", "pixel-art", "free-to-play", "single-player"],
+  "playUrl": "https://example.com/play/anvil-quest",
+  "browserPlayable": true,
+  "cover": {
+    "src": "/images/cover.png",
+    "alt": "Anvil Quest cover art showing a blacksmith holding a glowing hammer",
+    "width": 1200,
+    "height": 630
+  },
+  "screenshots": [
+    {
+      "src": "/images/shot-forge.png",
+      "alt": "The forging interface in Anvil Quest with two weapon properties being combined",
+      "width": 1280,
+      "height": 720,
+      "caption": "The forge: combine properties from anything you've killed."
+    },
+    {
+      "src": "/images/shot-boss.png",
+      "alt": "A boss fight against the Emberfang in a lava-lit arena",
+      "width": 1280,
+      "height": 720,
+      "caption": "Emberfang, the third boss. Bring something that isn't flammable."
+    },
+    {
+      "src": "/images/shot-map.png",
+      "alt": "The descent map showing branching paths between floors",
+      "width": 1280,
+      "height": 720,
+      "caption": "Each descent branches. You only get one path back up."
+    }
+  ],
+  "rating": {
+    "value": 4.3,
+    "best": 5,
+    "count": 2847
+  },
+  "guideIds": ["beginner-guide", "emberfang-boss-fight", "forge-tier-list"],
+  "characterIds": ["brann", "sable", "orrin"],
+  "videoIds": ["official-trailer", "beginner-walkthrough-video"],
+  "codesId": "anvil-quest-codes",
+  "reviewId": "anvil-quest-review",
+  "alternativeIds": ["games-like-anvil-quest"],
+  "faq": [
+    {
+      "q": "Is Anvil Quest free to play?",
+      "a": "Yes. Anvil Quest is free to play in a browser. There is a one-time cosmetic pack and nothing else — no energy timers, no loot boxes, no ad-gated runs."
+    },
+    {
+      "q": "Can I play Anvil Quest without downloading anything?",
+      "a": "Yes. Anvil Quest runs entirely in a browser tab on desktop and mobile. Nothing is installed, and your save is stored locally in that browser."
+    },
+    {
+      "q": "Does Anvil Quest have cross-save between devices?",
+      "a": "Not automatically. Progress lives in your browser's local storage, so switching devices starts a fresh run unless you export your save from the settings menu and import it on the other device."
+    },
+    {
+      "q": "How long does a full Anvil Quest run take?",
+      "a": "A first successful run to the final boss takes most players 12 to 18 hours. Experienced players who know the forge combinations can finish in under 6."
+    },
+    {
+      "q": "Is Anvil Quest available on mobile?",
+      "a": "Yes, it runs in mobile browsers and there are Android and iOS builds. The touch controls are serviceable but the forging menu is noticeably cramped on screens under 6 inches."
+    }
+  ],
+  "updated": "2026-10-28"
+}

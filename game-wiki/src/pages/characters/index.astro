@@ -1,0 +1,78 @@
+---
+/**
+ * /characters/ — roster index. Sorted by tier, so the page reads as a ranking
+ * as well as a directory. Copy from src/content/pages/characters.json.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getPage, getCharacters } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI } from '@/config/ui';
+import { isIndexable } from '@/config/site';
+import { characterIndexNodes } from '@/lib/jsonld';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+import ContentCard from '@/components/ui/ContentCard.astro';
+import AdSlot from '@/components/ads/AdSlot.astro';
+
+const game = await getGame();
+const page = await getPage('characters');
+const characters = await getCharacters();
+const origin = Astro.site?.origin ?? 'https://example.com';
+const path = routes.characters();
+const S = page.data.sectionLabels;
+
+const crumbs = [
+  { name: UI.labels.home, path: routes.home() },
+  { name: page.data.h1, path },
+];
+
+const jsonLd = characterIndexNodes({ origin, game }, crumbs, characters);
+
+const byTier = [1, 2, 3, 4, 5]
+  .map((tier) => ({ tier, items: characters.filter((c) => c.data.tier === tier) }))
+  .filter((g) => g.items.length > 0);
+---
+
+<BaseLayout
+  title={page.data.seo.title}
+  description={page.data.seo.description}
+  canonical={page.data.seo.canonical ?? path}
+  indexable={isIndexable('characters') && !page.data.seo.noindex}
+  ogImage={page.data.seo.ogImage}
+  jsonLd={jsonLd}
+>
+  <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <Breadcrumbs items={[{ name: page.data.h1 }]} />
+
+    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">{page.data.h1}</h1>
+    {page.data.lede && <p class="mt-3 max-w-2xl text-ink-300">{page.data.lede}</p>}
+
+    <AdSlot variant="leaderboard" slot="chars-top" />
+
+    {byTier.map((group) => (
+      <section class="mt-10" aria-labelledby={`tier-${group.tier}`}>
+        <div class="flex items-center gap-3">
+          <span class="grid h-8 w-8 place-items-center rounded-md bg-brand-500 font-mono text-sm font-black text-ink-950">
+            T{group.tier}
+          </span>
+          <h2 id={`tier-${group.tier}`} class="text-xl font-bold">
+            {S.tierPrefix ?? UI.labels.tier} {group.tier}
+          </h2>
+        </div>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {group.items.map((c) => (
+            <ContentCard
+              href={routes.character(c.id)}
+              title={c.data.name}
+              excerpt={c.data.summary}
+              image={c.data.portrait}
+              meta={c.data.role}
+              routeKey="characters"
+            />
+          ))}
+        </div>
+      </section>
+    ))}
+
+    {characters.length === 0 && <p class="mt-10 text-ink-400">{UI.empty.characters}</p>}
+  </div>
+</BaseLayout>

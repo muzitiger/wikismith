@@ -1,0 +1,13 @@
+{
+  "slug": "not-found",
+  "seo": {
+    "title": "Page not found",
+    "description": "This address does not exist on this site. Browse the homepage for guides, characters, codes, and walkthroughs instead.",
+    "noindex": true
+  },
+  "h1": "This page went missing",
+  "lede": "There is no page at this address. It may have moved, or the link was typed wrong.",
+  "sectionLabels": {
+    "eyebrow": "404"
+  }
+}

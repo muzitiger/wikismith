@@ -1,0 +1,141 @@
+---
+/**
+ * /review/ — opinion template with a structured verdict.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getPage, getReview } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI, formatDate } from '@/config/ui';
+import { isIndexable } from '@/config/site';
+import { reviewNodes } from '@/lib/jsonld';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+import FaqBlock from '@/components/content/FaqBlock.astro';
+import RatingStars from '@/components/ui/RatingStars.astro';
+import AdSlot from '@/components/ads/AdSlot.astro';
+
+const game = await getGame();
+const page = await getPage('review');
+const review = game.data.reviewId ? await getReview(game.data.reviewId) : undefined;
+
+if (!review) {
+  throw new Error(`game.json points reviewId at "${game.data.reviewId}" but no review has that slug.`);
+}
+
+const origin = Astro.site?.origin ?? 'https://example.com';
+const path = routes.review();
+
+const crumbs = [
+  { name: UI.labels.home, path: routes.home() },
+  { name: UI.nav.review, path },
+];
+
+const jsonLd = reviewNodes({ origin, game }, crumbs, review);
+const S = page.data.sectionLabels;
+---
+
+<BaseLayout
+  title={page.data.seo.title}
+  description={page.data.seo.description}
+  canonical={page.data.seo.canonical ?? path}
+  indexable={isIndexable('review') && !page.data.seo.noindex && !review.data.seo.noindex}
+  ogImage={review.data.seo.ogImage ?? game.data.cover.src}
+  ogType="article"
+  published={review.data.published}
+  updated={review.data.updated}
+  jsonLd={jsonLd}
+>
+  <article class="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+    <Breadcrumbs items={[{ name: UI.nav.review }]} />
+
+    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">{page.data.h1}</h1>
+
+    <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+      <div class="flex items-baseline gap-2">
+        <span class="font-mono text-4xl font-black text-brand-400">
+          {review.data.score.toFixed(1)}
+        </span>
+        <span class="text-sm text-ink-500">/ 10</span>
+      </div>
+      {game.data.rating && (
+        <RatingStars
+          value={game.data.rating.value}
+          best={game.data.rating.best}
+          count={game.data.rating.count}
+        />
+      )}
+      <p class="text-xs text-ink-500">
+        {UI.labels.updated}
+        <time class="ml-1 text-ink-300" datetime={review.data.updated.toISOString().slice(0, 10)}>
+          {formatDate(review.data.updated)}
+        </time>
+      </p>
+    </div>
+
+    <AdSlot variant="leaderboard" slot="review-top" />
+
+    <!-- Verdict -->
+    <section class="mt-8" aria-labelledby="verdict-heading">
+      <h2 id="verdict-heading" class="text-lg font-bold">{S.verdict ?? UI.labels.verdict}</h2>
+      <p class="mt-3 leading-relaxed text-ink-200">{review.data.verdict}</p>
+    </section>
+
+    <!-- Pros / cons -->
+    <div class="mt-8 grid gap-4 sm:grid-cols-2">
+      <section class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-ink-200">{S.pros ?? UI.labels.pros}</h2>
+        <ul class="mt-3 space-y-2">
+          {review.data.pros.map((p) => (
+            <li class="flex gap-2 text-sm leading-relaxed text-ink-300">
+              <span aria-hidden="true" class="mt-1 text-brand-400">+</span>
+              {p}
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-ink-200">{S.cons ?? UI.labels.cons}</h2>
+        <ul class="mt-3 space-y-2">
+          {review.data.cons.map((c) => (
+            <li class="flex gap-2 text-sm leading-relaxed text-ink-300">
+              <span aria-hidden="true" class="mt-1 text-ink-500">−</span>
+              {c}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+
+    <!-- Comparison -->
+    {
+      review.data.comparison.length > 0 && (
+        <section class="mt-8" aria-labelledby="compare-heading">
+          <h2 id="compare-heading" class="text-lg font-bold">{S.comparison ?? UI.labels.comparison}</h2>
+          <div class="mt-3 overflow-x-auto">
+            <table class="w-full border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-ink-700">
+                  <th scope="col" class="px-3 py-2 text-left font-semibold text-ink-100">Feature</th>
+                  <th scope="col" class="px-3 py-2 text-left font-semibold text-ink-100">{game.data.name}</th>
+                  <th scope="col" class="px-3 py-2 text-left font-semibold text-ink-100">Typical rival</th>
+                </tr>
+              </thead>
+              <tbody>
+                {review.data.comparison.map((row) => (
+                  <tr class="border-b border-ink-850">
+                    <td class="px-3 py-2 text-ink-400">{row.feature}</td>
+                    <td class="px-3 py-2 font-medium text-ink-200">{row.ours}</td>
+                    <td class="px-3 py-2 text-ink-400">{row.theirs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )
+    }
+
+    <FaqBlock faq={review.data.faq} />
+
+    <AdSlot variant="leaderboard" slot="review-bottom" />
+  </article>
+</BaseLayout>

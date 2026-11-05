@@ -1,0 +1,10 @@
+{
+  "slug": "tags",
+  "seo": {
+    "title": "Anvil Quest Topics & Tags",
+    "description": "Browse Anvil Quest content by topic: beginner help, boss fights, forge mechanics, tier lists, and more. Every guide and character page, grouped by what it covers.",
+    "noindex": false
+  },
+  "h1": "Browse by topic",
+  "lede": "Every guide and character page, grouped by what it covers."
+}

@@ -1,0 +1,46 @@
+---
+/**
+ * RatingStars — visible stars + numeric. Reads from the same values that feed
+ * AggregateRating, so the page and the structured data can never disagree.
+ */
+import { UI } from '@/config/ui';
+
+interface Props {
+  value: number;
+  best?: number;
+  count?: number;
+  size?: 'sm' | 'md';
+}
+
+const { value, best = 5, count, size = 'md' } = Astro.props;
+
+// Round to nearest half-star for display only.
+const pct = Math.max(0, Math.min(100, (value / best) * 100));
+const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
+const starSize = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
+---
+
+<div class:list={['flex items-center gap-2', textSize]}>
+  <span class="relative inline-flex" aria-hidden="true">
+    <span class="flex gap-0.5 text-ink-700">
+      {[0, 1, 2, 3, 4].map(() => (
+        <svg class={starSize} viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9z" />
+        </svg>
+      ))}
+    </span>
+    <span class="absolute inset-0 overflow-hidden" style={`width:${pct}%`}>
+      <span class="flex gap-0.5 text-brand-400">
+        {[0, 1, 2, 3, 4].map(() => (
+          <svg class={starSize} viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9z" />
+          </svg>
+        ))}
+      </span>
+    </span>
+  </span>
+  <span class="font-semibold text-ink-100">{value.toFixed(1)}</span>
+  <span class="text-ink-400">
+    {UI.labels.outOf} {best}{count ? ` · ${count.toLocaleString('en-US')} ${UI.labels.ratings}` : ''}
+  </span>
+</div>

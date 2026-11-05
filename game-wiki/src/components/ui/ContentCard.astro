@@ -1,0 +1,64 @@
+---
+/**
+ * Card primitives — used by every list page and every "related" rail.
+ * One shape, so the site doesn't grow four slightly different cards.
+ */
+import { isOpen } from '@/config/site';
+
+interface Props {
+  href: string;
+  title: string;
+  excerpt?: string;
+  image?: { src: string; alt: string; width: number; height: number };
+  meta?: string;
+  /** Route family — if locked, the card renders as a non-link. */
+  routeKey: 'guides' | 'characters' | 'tags' | 'alternatives';
+}
+
+const { href, title, excerpt, image, meta, routeKey } = Astro.props;
+const linked = isOpen(routeKey);
+---
+
+{
+  linked ? (
+    <a
+      href={href}
+      class="group flex gap-4 rounded-lg border border-ink-800 bg-ink-900/40 p-3 transition-colors hover:border-ink-700 hover:bg-ink-900"
+    >
+      {image && (
+        <img
+          src={image.src}
+          alt={image.alt}
+          width={image.width}
+          height={image.height}
+          loading="lazy"
+          decoding="async"
+          class="h-20 w-20 shrink-0 rounded-md object-cover"
+        />
+      )}
+      <div class="min-w-0">
+        <p class="font-semibold leading-snug text-ink-100 group-hover:text-brand-400">{title}</p>
+        {excerpt && <p class="mt-1 line-clamp-2 text-sm text-ink-400">{excerpt}</p>}
+        {meta && <p class="mt-1.5 text-xs text-ink-600">{meta}</p>}
+      </div>
+    </a>
+  ) : (
+    <div class="flex gap-4 rounded-lg border border-ink-850 bg-ink-900/20 p-3 opacity-60">
+      {image && (
+        <img
+          src={image.src}
+          alt={image.alt}
+          width={image.width}
+          height={image.height}
+          loading="lazy"
+          decoding="async"
+          class="h-20 w-20 shrink-0 rounded-md object-cover"
+        />
+      )}
+      <div class="min-w-0">
+        <p class="font-semibold leading-snug text-ink-200">{title}</p>
+        {excerpt && <p class="mt-1 line-clamp-2 text-sm text-ink-500">{excerpt}</p>}
+      </div>
+    </div>
+  )
+}

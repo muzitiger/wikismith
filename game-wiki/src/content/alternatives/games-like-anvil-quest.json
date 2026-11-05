@@ -1,0 +1,82 @@
+{
+  "slug": "games-like-anvil-quest",
+  "seo": {
+    "title": "8 Games Like Anvil Quest: Browser Roguelites Worth Your Time",
+    "description": "Eight games like Anvil Quest, ranked by how close they get to the forge system. Includes three free browser roguelites you can play in the next five minutes.",
+    "noindex": false
+  },
+  "intro": "Anvil Quest's hook is not the combat — it is the crafting. You kill something, you take its behaviour, you attach that behaviour to a weapon. Most roguelites give you cards. This one gives you a workshop. The games below are ranked by how well they scratch that specific itch, not by general quality.",
+  "items": [
+    {
+      "name": "Emberhold",
+      "url": "https://example.com/games/emberhold",
+      "why": "The closest match. Weapons inherit traits from boss parts and you dismantle your own gear for emergency healing. It is meaner than Anvil Quest and roughly twice as long, which is either a selling point or a warning.",
+      "platforms": ["Web", "Windows"],
+      "free": true
+    },
+    {
+      "name": "Scrapper's Ledger",
+      "url": "https://example.com/games/scrappers-ledger",
+      "why": "Trades the action combat for turn-based tactics but keeps the crafting loop intact. Every enemy type has a salvageable component and the combinations are more granular than Anvil Quest's property system.",
+      "platforms": ["Web", "Android"],
+      "free": true
+    },
+    {
+      "name": "Deep Anvil",
+      "url": "https://example.com/games/deep-anvil",
+      "why": "Descends for ore, forges for stats, dies a lot. Simpler than Anvil Quest and about a third the length, which makes it a good palate cleanser rather than a replacement.",
+      "platforms": ["Web"],
+      "free": true
+    },
+    {
+      "name": "Hollowforge",
+      "url": "https://example.com/games/hollowforge",
+      "why": "The forge is a puzzle rather than a menu. You are assembling properties into a shape that fits the weapon rather than picking from a list, and it takes a genuine hour to click.",
+      "platforms": ["Windows", "macOS"],
+      "free": false
+    },
+    {
+      "name": "Ore & Ruin",
+      "url": "https://example.com/games/ore-and-ruin",
+      "why": "Roguelite with a full economy layer. Slower burn than Anvil Quest but the material market means hoarding is a legitimate strategy instead of a mistake you learn once.",
+      "platforms": ["Windows"],
+      "free": false
+    },
+    {
+      "name": "Blacksmith's Debt",
+      "url": "https://example.com/games/blacksmiths-debt",
+      "why": "Narrative-first take on the same premise. You are forging to pay off a debt rather than to descend, and the crafting choices are irreversible, which raises the stakes considerably.",
+      "platforms": ["Windows", "macOS", "iOS"],
+      "free": false
+    },
+    {
+      "name": "Slag Runner",
+      "url": "https://example.com/games/slag-runner",
+      "why": "Fast, aggressive, and much less interested in crafting. Included because the movement feel is closer to Sable's dash chain than anything else on this list.",
+      "platforms": ["Web", "Android"],
+      "free": true
+    },
+    {
+      "name": "The Ninth Floor",
+      "url": "https://example.com/games/ninth-floor",
+      "why": "Only tangentially related: same descent structure, no crafting at all. Listed because it solves the pacing problem Anvil Quest has in act three, and it is worth seeing how.",
+      "platforms": ["Web", "Windows"],
+      "free": true
+    }
+  ],
+  "faq": [
+    {
+      "q": "What is the closest game to Anvil Quest?",
+      "a": "Emberhold. Both games are built on inheriting enemy behaviours into your weapon, and both let you dismantle gear for resources. Emberhold is harder and longer."
+    },
+    {
+      "q": "Are there free games like Anvil Quest?",
+      "a": "Yes. Emberhold, Scrapper's Ledger, Deep Anvil, and Slag Runner are all free to play in a browser. None require an install."
+    },
+    {
+      "q": "Is there anything like Anvil Quest on mobile?",
+      "a": "Scrapper's Ledger has the best mobile build of the games listed. It is turn-based, which removes the control problem that makes Anvil Quest awkward on a phone."
+    }
+  ],
+  "updated": "2026-10-26"
+}

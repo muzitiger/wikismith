@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink-950: #08090c;
+  --color-ink-900: #0e1015;
+  --color-ink-850: #14171e;
+  --color-ink-800: #1b1f28;
+  --color-ink-700: #262b36;
+  --color-ink-600: #3a4150;
+  --color-ink-400: #7b8496;
+  --color-ink-300: #9aa3b4;
+  --color-ink-200: #c4cad6;
+  --color-ink-100: #e6e9ee;
+
+  --color-brand-400: #f5a524;
+  --color-brand-500: #e8890c;
+  --color-brand-600: #c46f05;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ink-950);
+    color: var(--color-ink-200);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /*
+   * Layout safety net. A grid/flex item defaults to min-width:auto, which for
+   * an <img> resolves to its intrinsic pixel width — a 1200px cover image will
+   * therefore blow out a 390px viewport. Both rules below are required; either
+   * one alone leaves a reproducible horizontal-overflow bug on mobile.
+   */
+  img, svg, video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Grid and flex children may shrink below their content's intrinsic size. */
+  .grid > *, .flex > * {
+    min-width: 0;
+  }
+
+  /* Single-h1 rule: everything below h1 is styled here, so no page needs to
+     remember a heading class. */
+  h1, h2, h3, h4 {
+    color: var(--color-ink-100);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-500);
+    color: var(--color-ink-950);
+  }
+}
+
+@layer components {
+  .prose-site {
+    color: var(--color-ink-200);
+    line-height: 1.75;
+  }
+  .prose-site p { margin-block: 1rem; }
+  .prose-site h2 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    margin-block: 2.25rem 0.875rem;
+  }
+  .prose-site h3 {
+    font-size: 1.175rem;
+    line-height: 1.4;
+    margin-block: 1.75rem 0.625rem;
+  }
+  .prose-site a {
+    color: var(--color-brand-400);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose-site ul, .prose-site ol {
+    margin-block: 1rem;
+    padding-inline-start: 1.4rem;
+  }
+  .prose-site ul { list-style: disc; }
+  .prose-site ol { list-style: decimal; }
+  .prose-site li { margin-block: 0.4rem; }
+
+  /* Long code strings must never blow out the layout on mobile. */
+  .code-string {
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;
+    letter-spacing: 0.02em;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

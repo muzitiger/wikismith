@@ -1,0 +1,164 @@
+---
+/**
+ * BlockRenderer — turns the `blocks` array from content JSON into markup.
+ *
+ * Content authors write JSON; they never touch .astro. Adding a block type
+ * means: extend the Zod union in content.config.ts, add a branch here.
+ */
+import type { Guide } from '@/lib/content';
+import { resolveCharacters } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import CharacterChip from '@/components/content/CharacterChip.astro';
+
+type Block = Guide['data']['blocks'][number];
+
+interface Props {
+  blocks: Block[];
+}
+
+const { blocks } = Astro.props;
+
+// Pre-resolve every character referenced by any tier block, once.
+const referencedIds = blocks.flatMap((b) => (b.type === 'tiers' ? b.rows.flatMap((r) => r.characterIds) : []));
+const characters = await resolveCharacters([...new Set(referencedIds)]);
+const charById = new Map(characters.map((c) => [c.id, c]));
+---
+
+{
+  blocks.map((block) => {
+    switch (block.type) {
+      case 'p':
+        return <p>{block.text}</p>;
+
+      case 'h2':
+        return <h2>{block.text}</h2>;
+
+      case 'h3':
+        return <h3>{block.text}</h3>;
+
+      case 'list':
+        return block.ordered ? (
+          <ol>
+            {block.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ol>
+        ) : (
+          <ul>
+            {block.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        );
+
+      case 'steps':
+        return (
+          <ol class="not-prose my-6 space-y-4 list-none p-0">
+            {block.items.map((step, i) => (
+              <li class="flex gap-4">
+                <span
+                  aria-hidden="true"
+                  class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-500/15 font-mono text-xs font-bold text-brand-400"
+                >
+                  {i + 1}
+                </span>
+                <div>
+                  <p class="m-0 font-semibold text-ink-100">{step.title}</p>
+                  <p class="m-0 mt-1 text-ink-300">{step.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        );
+
+      case 'image':
+        return (
+          <figure class="not-prose my-6">
+            <img
+              src={block.media.src}
+              alt={block.media.alt}
+              width={block.media.width}
+              height={block.media.height}
+              loading="lazy"
+              decoding="async"
+              class="w-full rounded-lg border border-ink-800"
+            />
+            {block.media.caption && (
+              <figcaption class="mt-2 text-xs text-ink-400">{block.media.caption}</figcaption>
+            )}
+          </figure>
+        );
+
+      case 'note':
+        return (
+          <aside
+            class:list={[
+              'not-prose my-6 rounded-lg border-l-2 px-4 py-3 text-sm',
+              block.tone === 'warn'
+                ? 'border-brand-500 bg-brand-500/10 text-ink-200'
+                : 'border-ink-600 bg-ink-850 text-ink-200',
+            ]}
+          >
+            {block.text}
+          </aside>
+        );
+
+      case 'table':
+        return (
+          <figure class="not-prose my-6 overflow-x-auto">
+            <table class="w-full border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-ink-700">
+                  {block.headers.map((h) => (
+                    <th scope="col" class="px-3 py-2 text-left font-semibold text-ink-100">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {block.rows.map((row) => (
+                  <tr class="border-b border-ink-850">
+                    {row.map((cell, i) => (
+                      <td class="px-3 py-2 text-ink-300" data-first={i === 0 ? '' : undefined}>
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {block.caption && (
+              <figcaption class="mt-2 text-xs text-ink-400">{block.caption}</figcaption>
+            )}
+          </figure>
+        );
+
+      case 'tiers':
+        return (
+          <div class="not-prose my-6 space-y-3">
+            {block.rows.map((row) => (
+              <div class="flex items-start gap-3 rounded-lg border border-ink-800 bg-ink-900/50 p-3">
+                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-brand-500 font-mono text-sm font-black text-ink-950">
+                  {row.tier}
+                </span>
+                <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  {row.characterIds.map((id) => {
+                    const c = charById.get(id);
+                    return c ? (
+                      <CharacterChip name={c.data.name} href={routes.character(c.id)} />
+                    ) : (
+                      <span class="text-xs text-ink-600">{id}</span>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  })
+}

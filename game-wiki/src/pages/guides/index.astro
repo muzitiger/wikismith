@@ -1,0 +1,77 @@
+---
+/**
+ * /guides/ — list page. Grouped by kind so the page doubles as a template
+ * index (how-to vs walkthrough vs tier list).
+ *
+ * All copy — h1, lede, SEO, group headings — comes from
+ * src/content/pages/guides.json. Nothing here is hardcoded.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getPage, getGuides } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI, formatDate } from '@/config/ui';
+import { isIndexable } from '@/config/site';
+import { listNodes } from '@/lib/jsonld';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+import ContentCard from '@/components/ui/ContentCard.astro';
+import AdSlot from '@/components/ads/AdSlot.astro';
+
+const game = await getGame();
+const page = await getPage('guides');
+const guides = await getGuides();
+const origin = Astro.site?.origin ?? 'https://example.com';
+const S = page.data.sectionLabels;
+
+const grouped = (['howto', 'walkthrough', 'tierlist'] as const)
+  .map((kind) => ({ kind, label: S[kind], items: guides.filter((g) => g.data.kind === kind) }))
+  .filter((g) => g.items.length > 0 && g.label);
+
+const path = routes.guides();
+const crumbs = [
+  { name: UI.labels.home, path: routes.home() },
+  { name: page.data.h1, path },
+];
+
+const jsonLd = listNodes({ origin, game }, crumbs, {
+  name: page.data.seo.title,
+  description: page.data.seo.description,
+  items: guides.map((g) => ({ name: g.data.title, path: routes.guide(g.id) })),
+});
+---
+
+<BaseLayout
+  title={page.data.seo.title}
+  description={page.data.seo.description}
+  canonical={page.data.seo.canonical ?? path}
+  indexable={isIndexable('guides') && !page.data.seo.noindex}
+  ogImage={page.data.seo.ogImage}
+  jsonLd={jsonLd}
+>
+  <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <Breadcrumbs items={[{ name: page.data.h1 }]} />
+
+    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">{page.data.h1}</h1>
+    {page.data.lede && <p class="mt-3 max-w-2xl text-ink-300">{page.data.lede}</p>}
+
+    <AdSlot variant="leaderboard" slot="guides-top" />
+
+    {grouped.map((group) => (
+      <section class="mt-10" aria-labelledby={`h-${group.kind}`}>
+        <h2 id={`h-${group.kind}`} class="text-xl font-bold">{group.label}</h2>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {group.items.map((g) => (
+            <ContentCard
+              href={routes.guide(g.id)}
+              title={g.data.title}
+              excerpt={g.data.excerpt}
+              meta={`${UI.labels.updated} ${formatDate(g.data.updated)}`}
+              routeKey="guides"
+            />
+          ))}
+        </div>
+      </section>
+    ))}
+
+    {guides.length === 0 && <p class="mt-10 text-ink-400">{UI.empty.guides}</p>}
+  </div>
+</BaseLayout>

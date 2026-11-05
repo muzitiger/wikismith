@@ -1,0 +1,85 @@
+{
+  "slug": "brann",
+  "name": "Brann",
+  "role": "Bruiser",
+  "seo": {
+    "title": "Brann Build Guide: Stats, Abilities & Best Materials",
+    "description": "Brann is the tankiest character in Anvil Quest and the easiest way through floors 6 and 7. Full stats, all three abilities, and the materials that fix his damage.",
+    "noindex": false
+  },
+  "summary": "Brann hits like a hammer and moves like one too. He is the correct pick for anyone struggling with survivability, and the wrong pick for anyone who wants to finish a run quickly.",
+  "body": "Brann is the character the game gives you when you have died four times on floor 4 and are considering giving up. His health pool is roughly 40% larger than anyone else's, his damage reduction scales with missing health, and his abilities are all designed to make a bad situation survivable rather than to end a fight early.\n\nThe trade-off is speed. Brann's attack wind-up is the longest in the game, which means he cannot punish short-recovery enemies at all. Against anything that attacks in quick bursts, you will spend most of the fight blocking. His damage only becomes respectable once you attach a property that does work while he is not swinging — burning, chaining, or bleeding.",
+  "portrait": {
+    "src": "/images/char-brann.png",
+    "alt": "Brann, a broad-shouldered blacksmith character with a heavy hammer",
+    "width": 512,
+    "height": 512
+  },
+  "stats": [
+    {
+      "label": "Max health",
+      "value": "180"
+    },
+    {
+      "label": "Base damage",
+      "value": "22"
+    },
+    {
+      "label": "Attack speed",
+      "value": "Slow"
+    },
+    {
+      "label": "Damage reduction",
+      "value": "15%"
+    },
+    {
+      "label": "Move speed",
+      "value": "Slow"
+    }
+  ],
+  "tier": 2,
+  "abilities": [
+    {
+      "name": "Anvil Stance",
+      "description": "Brann plants his feet for three seconds, taking 60% reduced damage and reflecting 20% of blocked damage back at the attacker. Cannot move while active, which is exactly as dangerous as it sounds on floors with fire."
+    },
+    {
+      "name": "Overhead",
+      "description": "A slow, telegraphed swing that deals triple damage and breaks enemy shields. The 1.4 second wind-up means you cannot use it reactively — you have to commit before the enemy commits."
+    },
+    {
+      "name": "Second Wind",
+      "description": "Once per descent, restore 50% of max health when dropping below 20%. Automatic, no input required. This single ability is why Brann survives floors that kill everyone else."
+    }
+  ],
+  "tips": [
+    "Pair Brann with a burning or bleeding property. His damage output while blocking is otherwise zero, and those two properties keep ticking through Anvil Stance.",
+    "Second Wind triggers automatically, so never panic-heal below 20% — let the ability fire first, then potion.",
+    "Overhead breaks the shields on floor 6 shielded enemies. Without it you are chipping through 80% damage reduction."
+  ],
+  "guideIds": [
+    "beginner-guide",
+    "emberfang-boss-fight",
+    "forge-tier-list"
+  ],
+  "tags": [
+    "tank",
+    "beginner-friendly",
+    "melee"
+  ],
+  "updated": "2026-10-20",
+  "faq": [
+    {
+      "q": "Is Brann good in Anvil Quest?",
+      "a": "Brann sits in tier 2 of the roster. He is the most forgiving pick: the largest health pool and an automatic self-heal make floors 6 and 7 survivable without perfect play."
+    },
+    {
+      "q": "What are Brann's stats?",
+      "a": "Max health 180, Base damage 22, Attack speed Slow, Damage reduction 15%, Move speed Slow."
+    },
+    {
+      "q": "How do you unlock Brann?",
+      "a": "All three characters are available from the start. There is no unlock requirement, and swapping between runs is free."
+    }
+  ]
+}

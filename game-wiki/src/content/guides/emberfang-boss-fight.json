@@ -1,0 +1,98 @@
+{
+  "slug": "emberfang-boss-fight",
+  "title": "Anvil Quest Emberfang Boss Fight: Full Walkthrough",
+  "kind": "walkthrough",
+  "seo": {
+    "title": "Anvil Quest Emberfang Guide: How to Beat the Floor 5 Boss",
+    "description": "Beat Emberfang in Anvil Quest with the exact fire-resistant build, phase two timing, and the arena trick that stops the fire wave from hitting you.",
+    "noindex": false
+  },
+  "excerpt": "Emberfang kills people at 40% health because the second phase has no wind-up animation. Here is the tell, the build, and where to stand.",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "Emberfang is the first boss in Anvil Quest that requires preparation instead of reflexes. You cannot dodge your way through it. You either walk in with fire resistance or you spend the fight healing instead of hitting."
+    },
+    { "type": "h2", "text": "Recommended build" },
+    {
+      "type": "table",
+      "caption": "Minimum and comfortable stats for a first clear",
+      "headers": ["Stat", "Minimum", "Comfortable"],
+      "rows": [
+        ["Max health", "120", "150+"],
+        ["Fire resistance", "30%", "45%"],
+        ["Weapon damage", "28", "35"],
+        ["Forge slots", "1", "2"]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Fire resistance comes from two sources: a Warden's Ember in your weapon, or the Ashweave charm from the floor 4 puzzle. Do both if you can. Stacking resistance is not wasted here — phase two has three separate fire sources."
+    },
+    { "type": "h2", "text": "Phase one: 100% to 40%" },
+    {
+      "type": "list",
+      "ordered": true,
+      "items": [
+        "Stay at mid-range. Emberfang's lunge has a long recovery and you can punish it, but only if you are far enough away to react.",
+        "Attack only after the third claw swipe. The first two are bait and have almost no recovery window.",
+        "Do not stand in the lava pools. This sounds obvious. The pools are the same color as the floor in the left third of the arena and people stand in them constantly."
+      ]
+    },
+    { "type": "h2", "text": "The 40% transition" },
+    {
+      "type": "note",
+      "tone": "warn",
+      "text": "There is no wind-up animation for the phase transition. Emberfang's health bar hits 40% and the fire wave starts immediately. This is the single most common death in the fight and it is not a skill issue — it is a design decision that punishes greed."
+    },
+    {
+      "type": "p",
+      "text": "The counter is simple: stop attacking at 45% health. Back off to the far right corner of the arena, wait for the wave, and re-engage. You lose maybe six seconds. You gain the entire fight."
+    },
+    { "type": "h2", "text": "Phase two: 40% to 0%" },
+    {
+      "type": "p",
+      "text": "Emberfang now leaves a fire trail behind every movement. The arena gradually fills with danger zones until roughly 15% health, at which point almost the entire floor is on fire and you are fighting on a shrinking island."
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "Hug the right wall",
+          "body": "The fire trail spawns behind Emberfang's movement, so if you keep circling clockwise along the right wall, the trail gets pushed into the center where you are not standing."
+        },
+        {
+          "title": "Burn your consumables early",
+          "body": "There is no reward for saving potions past 20%. The last 15% of the fight is a damage race and you want full health going into it."
+        },
+        {
+          "title": "Take the trade at 10%",
+          "body": "Once Emberfang is under 10%, stop dodging and start swinging. Its final attack pattern is slow enough that a full-health player can simply out-damage it. Trading hits is correct here."
+        }
+      ]
+    },
+    { "type": "h2", "text": "Rewards" },
+    {
+      "type": "p",
+      "text": "First clear gives you an Emberfang Scale, which is the best fire-property material in the first half of the game. Do not sell it. On repeat kills the scale becomes a 40% drop, so if you want two fire weapons you will be farming this fight a few times."
+    }
+  ],
+  "characterIds": ["sable", "brann"],
+  "tags": ["boss", "walkthrough", "fire", "mid-game"],
+  "faq": [
+    {
+      "q": "What level should I be for Emberfang in Anvil Quest?",
+      "a": "There is no level system. The equivalent checkpoint is 120 max health plus at least 30% fire resistance. If you are below either number, come back after clearing floor 6 for gear."
+    },
+    {
+      "q": "Can you skip Emberfang?",
+      "a": "Yes. The arena has a side passage on the left that lets you descend to floor 6 without fighting. You lose the Emberfang Scale, which makes floors 6 and 7 noticeably harder, but the game does not block you."
+    },
+    {
+      "q": "Why does Emberfang's fire wave hit me even when I dodge?",
+      "a": "The wave is a floor-level effect with a taller hitbox than its visual. Rolling does not clear it. You have to be outside the arena's center ring entirely, which is why the right-corner strategy works."
+    }
+  ],
+  "published": "2026-04-15",
+  "updated": "2026-10-28"
+}

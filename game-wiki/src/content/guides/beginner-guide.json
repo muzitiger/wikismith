@@ -1,0 +1,91 @@
+{
+  "slug": "beginner-guide",
+  "title": "Anvil Quest Beginner Guide: Your First Five Hours",
+  "kind": "howto",
+  "seo": {
+    "title": "Anvil Quest Beginner Guide: First 5 Hours Explained",
+    "description": "A spoiler-light Anvil Quest beginner guide covering the forge, your first three bosses, and the two mistakes that waste most new players' first runs.",
+    "noindex": false
+  },
+  "excerpt": "What the game does not tell you: which ore to hoard, why your first forge choice decides your whole run, and how to stop dying to the second boss.",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "Anvil Quest explains almost nothing. It drops you in a forge, hands you a hammer, and assumes you will figure out that the game is not about combat. It is about what you carry into combat, and you build that at the anvil."
+    },
+    { "type": "h2", "text": "The one thing to understand first" },
+    {
+      "type": "p",
+      "text": "Every weapon you forge inherits properties from the material you use. Ore gives you flat stats. Monster parts give you behaviours. A weapon made from Emberfang's scale does not just hit harder — it sets the floor on fire behind you."
+    },
+    {
+      "type": "note",
+      "tone": "info",
+      "text": "You can dismantle anything you forge and recover 80% of the materials. Experiment. The penalty for a bad weapon is small and the penalty for being boring is that you die on floor 4."
+    },
+    { "type": "h2", "text": "Your first run, step by step" },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "Skip the iron ore on floors 1 and 2",
+          "body": "Iron is the tutorial material. Every guide tells you to collect it because it is the first thing you see. It scales badly and you will replace it by floor 3 anyway. Take the copper instead — copper weapons have a chance to chain-hit, which carries you much further."
+        },
+        {
+          "title": "Kill the Forge Warden twice before descending",
+          "body": "The floor 2 mini-boss respawns if you leave and re-enter the floor. Its drop, a Warden's Ember, is the only reliable source of the fire property before floor 5. Two embers means you can forge a fire weapon and still have one for the upgrade."
+        },
+        {
+          "title": "Forge a fire weapon before floor 4",
+          "body": "Floor 4 is where the game stops being polite. The enemies there regenerate health, and fire damage suppresses regeneration for three seconds. Without it, every fight becomes a war of attrition you cannot win."
+        },
+        {
+          "title": "Do not fight the Emberfang on your first descent",
+          "body": "The floor 5 boss has a phase transition at 40% health that catches almost everyone. If you are under 120 max health, walk past the arena. The game lets you. There is no penalty for skipping a boss and coming back stronger."
+        }
+      ]
+    },
+    { "type": "h2", "text": "The two mistakes almost everyone makes" },
+    {
+      "type": "list",
+      "ordered": true,
+      "items": [
+        "Upgrading a weapon you will replace. Upgrades are permanent per weapon, not per material. A +3 iron sword is 40 minutes of your life you cannot get back.",
+        "Selling monster parts for gold. Gold buys cosmetics and consumables. Parts buy properties. You will hit a wall at floor 6 where the only way through is a property you sold on floor 3."
+      ]
+    },
+    {
+      "type": "note",
+      "tone": "warn",
+      "text": "The shop on floor 6 sells monster parts back to you at roughly eight times what it paid. This is intentional. The game is teaching you a lesson about capitalism and also about hoarding."
+    },
+    { "type": "h2", "text": "What to do with your first 500 gold" },
+    {
+      "type": "p",
+      "text": "Nothing. Sit on it. The floor 7 vendor sells a permanent extra forge slot for 480 gold, and that single purchase is worth more than everything else in the early shop combined. Two forge slots means you can carry a utility weapon and a damage weapon at the same time, which is the difference between a comfortable run and a constant scramble."
+    },
+    { "type": "h2", "text": "When you should stop reading guides" },
+    {
+      "type": "p",
+      "text": "Once you clear floor 8, close this page. The back half of the game is built around discovering combinations, and the community has already spoiled the good ones. You only get to be surprised once."
+    }
+  ],
+  "characterIds": ["brann", "orrin"],
+  "tags": ["beginner", "forge", "walkthrough", "browser"],
+  "faq": [
+    {
+      "q": "How long is the Anvil Quest beginner section?",
+      "a": "Floors 1 through 5 take most new players three to five hours. If you are past five hours and still on floor 4, you are almost certainly using an unupgraded iron weapon."
+    },
+    {
+      "q": "Should I restart if I made a bad forge choice?",
+      "a": "No. Materials are recoverable at 80% and the difficulty curve flattens after floor 6. Restarting costs more time than recovering from a suboptimal build."
+    },
+    {
+      "q": "Do I need to play Anvil Quest in a specific browser?",
+      "a": "Chrome and Edge have the smoothest experience. Firefox works but the forging menu drops frames on lower-end machines. Safari on iOS is playable but the touch targets for combining properties are small."
+    }
+  ],
+  "published": "2026-04-02",
+  "updated": "2026-10-30"
+}

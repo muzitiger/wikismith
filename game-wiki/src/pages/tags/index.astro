@@ -1,0 +1,58 @@
+---
+/**
+ * /tags/ — tag index.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getPage, getTags, getGuides, getCharacters } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI } from '@/config/ui';
+import { isIndexable } from '@/config/site';
+import { listNodes } from '@/lib/jsonld';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+
+const game = await getGame();
+const page = await getPage('tags');
+const [tags, guides, characters] = await Promise.all([getTags(), getGuides(), getCharacters()]);
+const origin = Astro.site?.origin ?? 'https://example.com';
+const path = routes.tags();
+
+const counts = new Map<string, number>();
+for (const g of guides) for (const t of g.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+for (const c of characters) for (const t of c.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+
+const visible = tags.filter((t) => (counts.get(t.id) ?? 0) > 0);
+
+const jsonLd = listNodes({ origin, game }, [{ name: UI.labels.home, path: routes.home() }, { name: UI.labels.tags, path }], {
+  name: page.data.seo.title,
+  items: visible.map((t) => ({ name: t.data.label, path: routes.tag(t.id) })),
+});
+---
+
+<BaseLayout
+  title={page.data.seo.title}
+  description={page.data.seo.description}
+  canonical={page.data.seo.canonical ?? path}
+  indexable={isIndexable('tags') && !page.data.seo.noindex}
+  jsonLd={jsonLd}
+>
+  <div class="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+    <Breadcrumbs items={[{ name: UI.labels.tags }]} />
+    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">{page.data.h1}</h1>
+    {page.data.lede && <p class="mt-3 text-ink-300">{page.data.lede}</p>}
+
+    <ul class="mt-8 grid gap-2 sm:grid-cols-2">
+      {visible.map((tag) => (
+        <li>
+          <a
+            href={routes.tag(tag.id)}
+            class="flex items-baseline justify-between gap-3 rounded-lg border border-ink-800 bg-ink-900/40 px-4 py-3 transition-colors hover:border-brand-500/50"
+          >
+            <span class="font-medium text-ink-100">{tag.data.label}</span>
+            <span class="font-mono text-xs text-ink-500">{counts.get(tag.id)}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    {visible.length === 0 && <p class="mt-8 text-ink-400">{UI.empty.tags}</p>}
+  </div>
+</BaseLayout>

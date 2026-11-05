@@ -1,0 +1,73 @@
+{
+  "slug": "anvil-quest-codes",
+  "seo": {
+    "title": "Anvil Quest Codes (November 2026): Working Freebies",
+    "description": "All working Anvil Quest codes in one list, checked daily. Redeem for ore, forge materials, and the cosmetic pack, plus what to do when a code fails.",
+    "noindex": false
+  },
+  "redeemSteps": [
+    "Open Anvil Quest in your browser and load your save.",
+    "Open the settings menu from the gear icon in the top right of the forge screen.",
+    "Select the Redeem tab at the bottom of the settings panel.",
+    "Paste the code exactly as written, including capitals, and confirm. Codes are case sensitive.",
+    "Your reward appears in the inventory immediately. If the field clears but nothing arrives, reload the tab and check again before retrying."
+  ],
+  "entries": [
+    {
+      "code": "ANVIL2026",
+      "reward": "500 ore + one random tier 2 material",
+      "status": "active",
+      "added": "2026-10-01",
+      "source": "https://example.com/news/anvil-quest-2-1"
+    },
+    {
+      "code": "FORGEBOUND",
+      "reward": "Two Warden's Embers",
+      "status": "active",
+      "added": "2026-09-14"
+    },
+    {
+      "code": "EMBERFANG",
+      "reward": "One Emberfang Scale",
+      "status": "active",
+      "added": "2026-08-22"
+    },
+    {
+      "code": "DESCEND10K",
+      "reward": "Cosmetic hammer skin",
+      "status": "active",
+      "added": "2026-08-05"
+    },
+    {
+      "code": "LAUNCHDAY",
+      "reward": "1000 ore",
+      "status": "expired",
+      "added": "2025-03-18"
+    },
+    {
+      "code": "SUMMERFORGE",
+      "reward": "Summer cosmetic pack",
+      "status": "expired",
+      "added": "2025-07-01"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Are there any working Anvil Quest codes right now?",
+      "a": "Yes. Four codes are currently active: ANVIL2026, FORGEBOUND, EMBERFANG, and DESCEND10K. We recheck the list daily and move codes to the expired section the day they stop working."
+    },
+    {
+      "q": "Why does my Anvil Quest code say invalid?",
+      "a": "Three usual causes, in order: the code is case sensitive and you typed it lowercase, you already redeemed it on this save, or it expired. Codes are one-per-save, not one-per-account, so a fresh save can redeem a code you already used."
+    },
+    {
+      "q": "Do Anvil Quest codes expire?",
+      "a": "Yes. Most are tied to a patch or event and last one to three months. The LAUNCHDAY code lasted eleven months before expiring, so there is no fixed rule."
+    },
+    {
+      "q": "Where do I enter codes in Anvil Quest?",
+      "a": "Settings gear icon, then the Redeem tab at the bottom of the panel. There is no code field on the main menu, which is why most players assume the game has no code system at all."
+    }
+  ],
+  "updated": "2026-11-04"
+}

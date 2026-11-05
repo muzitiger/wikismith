@@ -1,0 +1,28 @@
+{
+  "name": "wikismith-game-wiki",
+  "version": "0.1.0",
+  "description": "Game wiki template: Astro + Tailwind, pure static SSG, content-driven. Fork once per game.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20.3.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && npm run verify",
+    "build:only": "astro build",
+    "verify": "node scripts/check-build.mjs && node scripts/check-content-purity.mjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "clean": "rm -rf dist .astro"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.4",
+    "astro": "^5.18.2",
+    "tailwindcss": "^4.3.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.7.3"
+  }
+}

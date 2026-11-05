@@ -1,0 +1,81 @@
+---
+/**
+ * SiteFooter — links filtered by SITEMAP_OPEN so a locked legal page never
+ * appears until it exists.
+ */
+import { UI } from '@/config/ui';
+import { isOpen, type RouteKey } from '@/config/site';
+import { getGame } from '@/lib/content';
+import { routes } from '@/lib/routes';
+
+const game = await getGame();
+const year = new Date().getFullYear();
+
+const explore: Array<{ key: RouteKey; label: string; href: string }> = [
+  { key: 'guides', label: UI.nav.guides, href: routes.guides() },
+  { key: 'characters', label: UI.nav.characters, href: routes.characters() },
+  { key: 'codes', label: UI.nav.codes, href: routes.codes() },
+  { key: 'alternatives', label: UI.nav.alternatives, href: routes.alternatives() },
+  { key: 'tags', label: UI.labels.tags, href: routes.tags() },
+];
+
+const legal: Array<{ key: RouteKey; label: string; href: string }> = [
+  { key: 'legal', label: 'About', href: routes.legal('about') },
+  { key: 'legal', label: 'Privacy', href: routes.legal('privacy-policy') },
+  { key: 'legal', label: 'Terms', href: routes.legal('terms-of-service') },
+];
+
+const visibleExplore = explore.filter((i) => isOpen(i.key));
+const visibleLegal = legal.filter((i) => isOpen(i.key));
+---
+
+<footer class="mt-16 border-t border-ink-800 bg-ink-900/40">
+  <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="lg:col-span-1">
+        <p class="font-semibold text-ink-100">{game.data.name}</p>
+        <p class="mt-2 max-w-sm text-sm leading-relaxed text-ink-400">
+          {UI.footer.aboutFallback}
+        </p>
+      </div>
+
+      {visibleExplore.length > 0 && (
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">
+            {UI.footer.linksTitle}
+          </p>
+          <ul class="mt-3 space-y-2">
+            {visibleExplore.map((item) => (
+              <li>
+                <a href={item.href} class="text-sm text-ink-300 hover:text-brand-400">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {visibleLegal.length > 0 && (
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">
+            {UI.footer.legalTitle}
+          </p>
+          <ul class="mt-3 space-y-2">
+            {visibleLegal.map((item) => (
+              <li>
+                <a href={item.href} class="text-sm text-ink-300 hover:text-brand-400">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+
+    <p class="mt-8 border-t border-ink-800 pt-6 text-xs text-ink-600">
+      © {year} {game.data.name}. {UI.footer.rights}
+    </p>
+  </div>
+</footer>

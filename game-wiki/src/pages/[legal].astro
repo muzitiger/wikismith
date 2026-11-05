@@ -1,0 +1,60 @@
+---
+/**
+ * /[legal]/ — about, privacy-policy, terms-of-service. One template, content
+ * from the legal collection so pages contain no legal copy.
+ */
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import type { Legal } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI, formatDate } from '@/config/ui';
+import { isIndexable } from '@/config/site';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const { getCollection } = await import('astro:content');
+  const all = await getCollection('legal');
+  return all.map((entry) => ({ params: { legal: entry.id }, props: { entry } }));
+};
+
+interface Props {
+  entry: Legal;
+}
+
+const { entry } = Astro.props;
+const path = routes.legal(entry.id);
+---
+
+<BaseLayout
+  title={entry.data.seo.title}
+  description={entry.data.seo.description}
+  canonical={entry.data.seo.canonical ?? path}
+  indexable={isIndexable('legal') && !entry.data.seo.noindex}
+  updated={entry.data.updated}
+>
+  <article class="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+    <Breadcrumbs items={[{ name: entry.data.title }]} />
+    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">{entry.data.title}</h1>
+    <p class="mt-2 text-xs text-ink-500">
+      {UI.labels.lastUpdated}
+      <time class="ml-1 text-ink-300" datetime={entry.data.updated.toISOString().slice(0, 10)}>
+        {formatDate(entry.data.updated)}
+      </time>
+    </p>
+
+    <div class="prose-site mt-6">
+      {entry.data.blocks.map((block) => {
+        if (block.type === 'h2') return <h2>{block.text}</h2>;
+        if (block.type === 'list')
+          return (
+            <ul>
+              {block.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          );
+        return <p>{block.text}</p>;
+      })}
+    </div>
+  </article>
+</BaseLayout>

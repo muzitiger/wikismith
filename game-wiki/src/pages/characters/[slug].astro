@@ -1,0 +1,177 @@
+---
+/**
+ * /characters/<slug>/ — stat-block detail page.
+ */
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getGame, getCharacters, getGuides } from '@/lib/content';
+import type { Character } from '@/lib/content';
+import { routes } from '@/lib/routes';
+import { UI, formatDate } from '@/config/ui';
+import { isIndexable } from '@/config/site';
+import { characterNodes } from '@/lib/jsonld';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+import FaqBlock from '@/components/content/FaqBlock.astro';
+import AdSlot from '@/components/ads/AdSlot.astro';
+import RelatedRail from '@/components/content/RelatedRail.astro';
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const chars = await getCharacters();
+  return chars.map((character) => ({ params: { slug: character.id }, props: { character } }));
+};
+
+interface Props {
+  character: Character;
+}
+
+const { character } = Astro.props;
+const game = await getGame();
+const origin = Astro.site?.origin ?? 'https://example.com';
+const path = routes.character(character.id);
+
+const crumbs = [
+  { name: UI.labels.home, path: routes.home() },
+  { name: UI.nav.characters, path: routes.characters() },
+  { name: character.data.name, path },
+];
+
+const jsonLd = characterNodes(
+  { origin, game },
+  crumbs.map((c) => ({ name: c.name, path: c.path })),
+  character.data.faq
+);
+
+// Guides that link here, plus guides this character's page links to.
+const guides = await getGuides();
+const relatedGuides = guides
+  .filter((g) => character.data.guideIds.includes(g.id))
+  .map((g) => ({ href: routes.guide(g.id), title: g.data.title, excerpt: g.data.excerpt }));
+---
+
+<BaseLayout
+  title={character.data.seo.title}
+  description={character.data.seo.description}
+  canonical={character.data.seo.canonical ?? path}
+  indexable={isIndexable('characters') && !character.data.seo.noindex}
+  ogImage={character.data.seo.ogImage ?? character.data.portrait.src}
+  ogType="article"
+  updated={character.data.updated}
+  jsonLd={jsonLd}
+>
+  <article class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <Breadcrumbs
+      items={[
+        { name: UI.nav.characters, href: routes.characters() },
+        { name: character.data.name },
+      ]}
+    />
+
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div class="min-w-0">
+        <header class="flex flex-wrap items-start gap-5">
+          <img
+            src={character.data.portrait.src}
+            alt={character.data.portrait.alt}
+            width={character.data.portrait.width}
+            height={character.data.portrait.height}
+            class="h-24 w-24 rounded-lg border border-ink-800 object-cover"
+            decoding="async"
+          />
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-3xl font-black tracking-tight">{character.data.name}</h1>
+              <span class="rounded bg-brand-500/15 px-2 py-0.5 font-mono text-xs font-bold text-brand-400">
+                T{character.data.tier}
+              </span>
+            </div>
+            <p class="mt-1 text-sm font-medium text-ink-400">{character.data.role}</p>
+            <p class="mt-3 text-ink-300">{character.data.summary}</p>
+          </div>
+        </header>
+
+        <AdSlot variant="inline" slot="char-mid" />
+
+        <!-- Stats -->
+        <section class="mt-8" aria-labelledby="stats-heading">
+          <h2 id="stats-heading" class="text-xl font-bold">{UI.labels.stats}</h2>
+          <dl class="mt-3 grid gap-px overflow-hidden rounded-lg border border-ink-800 bg-ink-800 sm:grid-cols-2">
+            {character.data.stats.map((stat) => (
+              <div class="flex items-center justify-between bg-ink-900 px-4 py-2.5">
+                <dt class="text-sm text-ink-400">{stat.label}</dt>
+                <dd class="font-mono text-sm font-semibold text-ink-100">{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <!-- Body -->
+        <section class="mt-8" aria-labelledby="overview-heading">
+          <h2 id="overview-heading" class="text-xl font-bold">Overview</h2>
+          <div class="prose-site mt-3">
+            {character.data.body.split('\n\n').map((p) => (
+              <p>{p}</p>
+            ))}
+          </div>
+        </section>
+
+        <!-- Abilities -->
+        <section class="mt-8" aria-labelledby="abilities-heading">
+          <h2 id="abilities-heading" class="text-xl font-bold">{UI.labels.abilities}</h2>
+          <div class="mt-3 space-y-3">
+            {character.data.abilities.map((ability) => (
+              <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+                <p class="font-semibold text-ink-100">{ability.name}</p>
+                <p class="mt-1 text-sm leading-relaxed text-ink-300">{ability.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <!-- Tips -->
+        {character.data.tips.length > 0 && (
+          <section class="mt-8" aria-labelledby="tips-heading">
+            <h2 id="tips-heading" class="text-xl font-bold">{UI.labels.tips}</h2>
+            <ul class="mt-3 space-y-2">
+              {character.data.tips.map((tip) => (
+                <li class="flex gap-2.5 text-sm leading-relaxed text-ink-300">
+                  <span aria-hidden="true" class="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500" />
+                  {tip}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <FaqBlock faq={character.data.faq} />
+
+        <p class="mt-8 text-xs text-ink-600">
+          {UI.labels.lastUpdated}
+          <time datetime={character.data.updated.toISOString().slice(0, 10)}>
+            {formatDate(character.data.updated)}
+          </time>
+        </p>
+      </div>
+
+      <aside class="lg:pt-4">
+        <div class="sticky top-20 space-y-6">
+          {character.data.tags.length > 0 && (
+            <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+              <p class="text-xs font-semibold uppercase tracking-wider text-ink-400">
+                {UI.labels.tags}
+              </p>
+              <div class="mt-2 flex flex-wrap gap-1.5">
+                {character.data.tags.map((tag) => (
+                  <span class="rounded-full border border-ink-800 px-2 py-0.5 text-[11px] text-ink-400">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <RelatedRail heading={UI.labels.relatedGuides} routeKey="guides" items={relatedGuides} />
+        </div>
+      </aside>
+    </div>
+  </article>
+</BaseLayout>

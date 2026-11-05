@@ -1,0 +1,49 @@
+---
+/**
+ * AdSlot — a placeholder. Nothing else.
+ *
+ * HARD CONSTRAINTS (enforced by scripts/check-no-ads.mjs):
+ *  - No <script> tag, no src=, no fetch, no import of any ad network.
+ *  - With FEATURES.ads === false this renders a dashed box in dev and
+ *    absolutely nothing in production.
+ *
+ * To enable later: turn on the feature flag, then add your network's snippet
+ * to this single file. Keep it the only place with a network call.
+ */
+import { FEATURES } from '@/config/site';
+import { UI } from '@/config/ui';
+
+interface Props {
+  /** Layout hint only. Does not imply a network request. */
+  variant?: 'leaderboard' | 'inline' | 'sidebar';
+  /** Dev-only label so you can see where the slot sits. */
+  slot?: string;
+}
+
+const { variant = 'inline', slot = 'a1' } = Astro.props;
+
+const heights: Record<string, string> = {
+  leaderboard: 'h-[90px]',
+  inline: 'h-[250px]',
+  sidebar: 'h-[600px]',
+};
+
+const showPlaceholder = import.meta.env.DEV && !FEATURES.ads;
+---
+
+{
+  FEATURES.ads ? (
+    /* Reserved for the ad network snippet. Intentionally empty. */
+    <div data-ad-slot={slot} data-ad-variant={variant} class="my-6" />
+  ) : showPlaceholder ? (
+    <div
+      class:list={[
+        'my-6 grid place-items-center rounded-lg border border-dashed border-ink-700 bg-ink-900/40 text-xs text-ink-600',
+        heights[variant],
+      ]}
+      aria-hidden="true"
+    >
+      {UI.ads.slotLabel} · {variant} · {slot}
+    </div>
+  ) : null
+}

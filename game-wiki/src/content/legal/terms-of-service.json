@@ -1,0 +1,42 @@
+{
+  "slug": "terms-of-service",
+  "title": "Terms of Service",
+  "seo": {
+    "title": "Terms of Service",
+    "description": "The terms covering use of this site: what you may do with its content, how accuracy is handled, and the limits of the site's liability.",
+    "noindex": false
+  },
+  "updated": "2026-10-01",
+  "blocks": [
+    { "type": "h2", "text": "Use of this site" },
+    {
+      "type": "p",
+      "text": "This site is provided for personal, informational use. You may read it, link to it, and quote short excerpts with attribution. You may not republish substantial portions of it as your own content."
+    },
+    { "type": "h2", "text": "No affiliation" },
+    {
+      "type": "p",
+      "text": "This is an independent fan resource. It is not affiliated with, endorsed by, or sponsored by the game's developer or publisher. Game names, artwork, and trademarks remain the property of their respective owners."
+    },
+    { "type": "h2", "text": "Accuracy" },
+    {
+      "type": "p",
+      "text": "Guides and code lists are checked when they are updated, and each page carries the date of its last update. Games change. Information that was correct at the stated date may not be correct afterwards, and the site makes no guarantee that it is current."
+    },
+    { "type": "h2", "text": "External links" },
+    {
+      "type": "p",
+      "text": "Links to the game, to video platforms, and to other websites are provided for convenience. The site is not responsible for the content, availability, or practices of any external destination."
+    },
+    { "type": "h2", "text": "Limitation of liability" },
+    {
+      "type": "p",
+      "text": "The site is provided as is, without warranty of any kind. To the extent permitted by law, the site's operator is not liable for any loss arising from use of the site or reliance on its content."
+    },
+    { "type": "h2", "text": "Changes" },
+    {
+      "type": "p",
+      "text": "These terms may be revised. The date at the top of this page reflects the most recent revision."
+    }
+  ]
+}

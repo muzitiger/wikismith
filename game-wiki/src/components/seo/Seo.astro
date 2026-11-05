@@ -1,0 +1,63 @@
+---
+/**
+ * Seo — head tags. Every value is passed in; nothing is read from globals
+ * except the canonical origin.
+ *
+ * Single-h1 and canonical correctness are the two things that quietly rot in
+ * template sites, so both are enforced structurally: pages get `canonical`
+ * from their own route, never from a shared default.
+ */
+interface Props {
+  title: string;
+  description: string;
+  /** Path only (e.g. "/guides/foo/"). Converted to absolute here. */
+  canonical: string;
+  /** When false, emits noindex,nofollow. Driven by SITEMAP_OPEN. */
+  indexable: boolean;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  published?: Date;
+  updated?: Date;
+}
+
+import { SITE } from '@/config/site';
+
+const {
+  title,
+  description,
+  canonical,
+  indexable,
+  ogImage,
+  ogType = 'website',
+  published,
+  updated,
+} = Astro.props;
+
+const origin = Astro.site?.origin ?? SITE.url;
+const canonicalUrl = `${origin}${canonical}`;
+const imageUrl = ogImage ? `${origin}${ogImage}` : undefined;
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+
+{!indexable && <meta name="robots" content="noindex, nofollow" />}
+{indexable && <meta name="robots" content="index, follow, max-image-preview:large" />}
+
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={SITE.url} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:locale" content={SITE.ogLocale} />
+{imageUrl && <meta property="og:image" content={imageUrl} />}
+{imageUrl && <meta property="og:image:alt" content={title} />}
+
+<meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{imageUrl && <meta name="twitter:image" content={imageUrl} />}
+
+{published && <meta property="article:published_time" content={published.toISOString()} />}
+{updated && <meta property="article:modified_time" content={updated.toISOString()} />}

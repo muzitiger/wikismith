@@ -1,0 +1,57 @@
+---
+/**
+ * BaseLayout — the only HTML skeleton. Exactly one <h1> is enforced by
+ * convention: pages put their h1 in the default slot; this layout never
+ * renders a heading.
+ */
+import '@/styles/global.css';
+import { SITE } from '@/config/site';
+import { UI } from '@/config/ui';
+import Seo from '@/components/seo/Seo.astro';
+import JsonLd from '@/components/seo/JsonLd.astro';
+import SiteHeader from '@/components/layout/SiteHeader.astro';
+import SiteFooter from '@/components/layout/SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  indexable: boolean;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  published?: Date;
+  updated?: Date;
+  jsonLd?: Array<Record<string, unknown>>;
+}
+
+const props = Astro.props;
+---
+
+<!doctype html>
+<html lang={SITE.locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <Seo {...props} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    {props.jsonLd && props.jsonLd.length > 0 && <JsonLd nodes={props.jsonLd} />}
+  </head>
+  <body class="min-h-dvh flex flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-brand-500 focus:px-4 focus:py-2 focus:text-ink-950 focus:font-semibold"
+    >
+      {UI.skipToContent}
+    </a>
+
+    <SiteHeader />
+
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+
+    <SiteFooter />
+  </body>
+</html>

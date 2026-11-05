@@ -1,0 +1,14 @@
+{
+  "id": "beginner-walkthrough-video",
+  "title": "Anvil Quest Beginner Walkthrough: Floors 1 to 5",
+  "description": "A no-commentary walkthrough of the first five floors of Anvil Quest, showing the copper weapon opening, the Warden Ember farming route, and the Emberfang skip.",
+  "thumbnail": {
+    "src": "/images/video-walkthrough.png",
+    "alt": "Anvil Quest walkthrough video thumbnail showing floor combat",
+    "width": 1280,
+    "height": 720
+  },
+  "url": "https://www.youtube.com/watch?v=9bZkp7q19f0",
+  "uploadDate": "2026-04-20",
+  "duration": "PT18M45S"
+}
